@@ -1,0 +1,16 @@
+{
+    "name": "EyE.CategoricalDebug.Runtime",
+    "rootNamespace": "",
+    "references": [
+        "GUID:ad3415b42743c1e4392362341061b902"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

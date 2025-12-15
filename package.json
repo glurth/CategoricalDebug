@@ -1,0 +1,12 @@
+{
+  "name": "com.glurth.categoricaldebug",
+  "version": "1.0.0",
+  "displayName": "Categorical Debug",
+  "description": "Unity Package used to enable or disable logging and asserts by category.",
+  "unity": "2022.3",
+  "dependencies": {},
+  "author": {
+    "name": "Glurth"
+  },
+  "hideInEditor": "false"
+}
