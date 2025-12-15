@@ -32,7 +32,7 @@ You can install this package in Unity via GitHub using the Unity Package Manager
 
 ### Basic Category Logging
 
-$$$
+```
 class PhysicsDebug : CategoryLogBase<PhysicsDebug>
 {
     protected override string CategoryName => "Physics";
@@ -42,11 +42,11 @@ class PhysicsDebug : CategoryLogBase<PhysicsDebug>
 PhysicsDebug.Log("Impulse resolved");
 PhysicsDebug.LogWarning("Potential collision issue");
 PhysicsDebug.LogError("Physics simulation failure");
-$$$
+```
 
 ### General Logging
 
-$$$
+```
 // Logs a message if the debug define is active
 CatDebug.Log("This is a general log message");
 
@@ -57,15 +57,15 @@ CatDebug.Log(1, "Collision resolved");
 // Prepend or append text to next log
 CatDebug.PrependToNextLog(1, "Prepended text: ");
 CatDebug.AppendToNextLog(1, "Appended text.");
-$$$
+```
 
 ### Assertions
 
-$$$
+```
 PhysicsAssert.IsTrue(condition, "Condition failed");
 PhysicsAssert.IsNotNull(someObject, "Object should not be null");
 PhysicsAssert.AreNotNull("Multiple objects check", obj1, obj2, obj3);
-$$$
+```
 
 ### Editor Settings
 
@@ -109,7 +109,7 @@ Use `DebugCategoryRegistrar.RegisterCategory(string categoryName)` in your code 
 
 ## Example Category and Assert Classes
 
-$$$
+```
 class PhysicsDebug : CategoryLogBase<PhysicsDebug>
 {
     protected override string CategoryName => "Physics";
@@ -119,7 +119,7 @@ class PhysicsAssert : CategoryAssert<PhysicsAssert>
 {
     protected override string CategoryName => "Physics";
 }
-$$$
+```
 
 ---
 
