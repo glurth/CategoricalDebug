@@ -36,23 +36,29 @@ namespace EyE.Unity.CategoricalDebug
     public class CatDebugInstance
     {
         /// <summary>
-        /// Default constructor, blank string is assigned to instance name.
+        /// Default constructor, blank string is assigned to instance name. Default log filename and path used.
         /// </summary>
-        public CatDebugInstance() { }
+        public CatDebugInstance() { InitFile(); }
+
         /// <summary>
-        /// Constructor assigns the provided string to instance name, and enables the prependInstanceName flag.
+        /// Constructor assigns the provided string to instance name, and if not null or empty enables the prependInstanceName flag.
         /// </summary>
-        public CatDebugInstance(string instanceName)
+        /// <param name="instanceName">may be null or empty to have no effect- otherwise, will be prepended to log output</param>
+        /// <param name="logFilePath">use to override the default filename path</param>
+        public CatDebugInstance(string instanceName, string logFilePath = "CategoricalLog.txt")
         {
             this.instanceName = instanceName;
-            prependInstanceName = true;
+            this.catLogFilePath = logFilePath;
+            prependInstanceName = ! string.IsNullOrEmpty(instanceName);
+            InitFile();
         }
-
         /// <summary>
         /// Name assigned to this instance, for potential display. By default instances will have a blank string for the name.
         /// Uniqueness of names is not checked, nor required (but it is recommended for most use-cases).
         /// </summary>
         public string instanceName = "CatDebug";
+
+        #region globalSettings
 
         /// <summary>
         /// Controls weather or not the instanceName will be included Log messages, at the start of the message.
@@ -65,6 +71,28 @@ namespace EyE.Unity.CategoricalDebug
         /// </summary>
         public bool prependInstanceNameSingleLine = false;
 
+        /// <summary>
+        ///  the option controls whether or not categories names will be prepended to log displays.
+        ///  </summary>
+        public bool addCategoryNameToLog = false;
+
+        /// <summary>
+        ///  the option controls whether or not categories names will be prepended to log displays.
+        ///  </summary>
+        public bool addCategoryNameToLogSingleLine = false;
+
+        /// <summary>
+        /// stores the state of the alwaysShowWarnings Preference.  When true, warning will be displayed, even if logging for the category is disabled.
+        /// </summary>
+        public bool alwaysShowWarnings = true;
+
+        /// <summary>
+        /// when true, log entries that are not sent to unity console, but ARE sent to a log file, will include the stack trace in the file.  When false, stack trace will not be included.
+        /// </summary>
+        public bool logToFileIncludeStackStrace = true;
+
+        #endregion
+
 
         /// <summary>
         /// internal function checks to see if a newline should be added after the name (checks prependInstanceNameSingleLine), and does so- returning the result.
@@ -76,7 +104,82 @@ namespace EyE.Unity.CategoricalDebug
             return instanceName + System.Environment.NewLine;
         }
 
+        /// <summary>
+        /// Text that includes the category name, and a label ("Category: ") for it.
+        /// </summary>
+        /// <param name="category">categoryID for which the name will be looked up.</param>
+        /// <returns></returns>
+        internal string CategoryDisplayText(int category)
+        {
+            if (addCategoryNameToLogSingleLine)
+                return CatDebug.GetCategoryName(category) + ": ";
+            return "Category: " + CatDebug.GetCategoryName(category) + StringBuilderExtensions.NewLineString;
+        }
 
+        #region fileStream
+        readonly string catLogFilePath = "CategoricalLog.txt"; //will store in root of project folder.
+        static System.IO.StreamWriter logFileStream = null;
+        private readonly object logStreamThreadLock = new object();
+
+        /// <summary>
+        /// Static constructor for this class, performs initialization the first time the class is touched.
+        /// opens logfile steam
+        /// </summary>
+        void InitFile()
+        {
+            if (System.IO.File.Exists(catLogFilePath))
+            {
+                try
+                {
+                    System.IO.File.Delete(catLogFilePath);
+                }
+                catch
+                {
+                    CatDebugLog.LogWarning("Failed to delete existing log file "+ catLogFilePath+ ", (possibly open).  Trying Write anyway.");
+                }
+            }
+
+            //Create the file.
+            try
+            {
+                logFileStream = new System.IO.StreamWriter(catLogFilePath);
+                Application.quitting -= FlushStream;//just incase was present
+                Application.quitting += FlushStream;
+            }
+            catch
+            {
+                CatDebugLog.LogWarning("Failed to create file " + catLogFilePath);
+            }
+            
+        }
+
+        void FlushStream()
+        {
+            CatDebugLog.Log("Flushing and closing log file stream.");
+            if (logFileStream != null)
+            {
+                logFileStream.Flush();
+                logFileStream.Close();
+            }
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="s"></param>
+        internal void ToFile(string s)
+        {
+            StringBuilder builder = new StringBuilder(s);
+            if (logToFileIncludeStackStrace)
+                builder.Append(StringBuilderExtensions.NewLineString, "StackTrace: ", StringBuilderExtensions.NewLineString, System.Environment.StackTrace);
+            lock (logStreamThreadLock)
+            {
+                logFileStream.WriteLine(builder);
+            }
+        }
+
+        #endregion
 
 
         /// <summary>
@@ -127,8 +230,8 @@ namespace EyE.Unity.CategoricalDebug
             if (catEnabled || catFileEnabled)
             {
 
-                if (CatDebug.addCategoryNameToLog)
-                    output.Append(CatDebug.CategoryDisplayText(category));
+                if (addCategoryNameToLog)
+                    output.Append(CategoryDisplayText(category));
                 if (prependInstanceName)
                     output.Append(InstanceNameText());
 
@@ -139,10 +242,10 @@ namespace EyE.Unity.CategoricalDebug
                 if (catEnabled)
                 {
                     UnityEngine.Debug.Log(output.ToString());
-                    CatDebug.ToFile(output.ToString());
+                    ToFile(output.ToString());
                 }
                 else if (catFileEnabled)
-                    CatDebug.ToFile(output.ToString());
+                    ToFile(output.ToString());
             }
         }
 
@@ -158,6 +261,42 @@ namespace EyE.Unity.CategoricalDebug
             int categoryID = DebugCategoryRegistrar.GetCategoryID(categoryName);
             if (categoryID != -1)
                 Log(categoryID, message);
+        }
+
+        /// <summary>
+        /// This function will take a single string, and if the category is enabled, and if a DEBUG build is running, it will send it to Debug.LogError for display.
+        /// If addCategoryNameToLog is true, the category name will be prepended to the final string before sending it to Debug.LogError
+        /// </summary>
+        /// <param name="category">Errors are always logged. With the appropriate options selected, this category's name may be prepended the log entry.</param>
+        /// <param name="message">A string sent to Debug.LogError for display.</param>
+        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        public void LogError(int category, string message)
+        {
+
+            if (addCategoryNameToLog)
+                UnityEngine.Debug.LogError(CategoryDisplayText(category) + message);
+            else
+                UnityEngine.Debug.LogError(message);
+
+        }
+
+
+        /// <summary>
+        /// This function will take a single string, and if the category is enabled, and if a DEBUG build is running, it will send it to Debug.LogWarning for display.
+        /// If addCategoryNameToLog is true, the category name will be prepended to the final string before sending it to Debug.LogWarning
+        /// </summary>
+        /// <param name="category">Only if this Category index is enabled, or the alwaysShowWarnings option is set to true, will this function display a log.  With the appropriate options selected, this category's name may be prepended the log entry.</param>
+        /// <param name="message">A string sent to Debug.LogWarning for display.</param>
+        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        public void LogWarning(int category, string message)
+        {
+            if (alwaysShowWarnings || DebugCategoryRegistrar.GetCategoryState(category))
+            {
+                if (addCategoryNameToLog)
+                    UnityEngine.Debug.LogWarning(CategoryDisplayText(category) + message);
+                else
+                    UnityEngine.Debug.LogWarning(message);
+            }
         }
 
         #region append and prepend members
@@ -468,8 +607,6 @@ namespace EyE.Unity.CategoricalDebug
         public const string CONDITONAL_DEFINE_STRING = "EYE_DEBUG";
 
         static CatDebugInstance instance = new CatDebugInstance();
-
-        static readonly string catLogFilePath = "CategoricalLog.txt";
         
         /// <summary>
         /// Static constructor for this class, performs initialization the first time the class is touched.
@@ -477,86 +614,56 @@ namespace EyE.Unity.CategoricalDebug
         /// </summary>
         static CatDebug()
         {
-            if (System.IO.File.Exists(catLogFilePath))
-            {
-                try
-                {
-                    System.IO.File.Delete(catLogFilePath);
-                }
-                catch
-                {
-                    CatLogLog.Log("Failed to delete existing ", catLogFilePath , ".  Trying Write anyway.");
-                }
-            }
-
-            //Create the file.
-            try
-            {
-                logFileStream = new System.IO.StreamWriter(catLogFilePath);
-
-            }
-            catch
-            {
-                CatLogLog.LogWarning("Failed to create file " + catLogFilePath);
-            }
-            //Debug.Log("Loading CatDebug Prefs");
-
-
+//            CatDebugLog.Log("Loading CatDebug Prefs");
             //general settings that affect all categories
             CatDebug.addCategoryNameToLog = CatDebugOptions.addCategoryNameToLog;
             CatDebug.addCategoryNameToLogSingleLine = CatDebugOptions.addCategoryNameToLogSingleLine;
             CatDebug.alwaysShowWarnings = CatDebugOptions.alwaysShowWarnings;
             CatDebug.logToFileIncludeStackStrace = CatDebugOptions.logToFileIncludeStackTrace;
 
-            Application.quitting += FlushStream;
         }
 
-        static void FlushStream()
-        {
-            CatLogLog.Log("flushing and closing log file stream");
-            if (logFileStream != null)
-            {
-                logFileStream.Flush();
-                logFileStream.Close();
-            }
-        }
         #region globalSettings
         
+        
+        /// <summary>
+        ///  the option controls whether or not categories names will be prepended to log displays.
+        ///  </summary>
+        public static bool addCategoryNameToLog
+        {
+            get { return instance.addCategoryNameToLog; }
+            set { instance.addCategoryNameToLog = value; }
+        }
 
         /// <summary>
         ///  the option controls whether or not categories names will be prepended to log displays.
         ///  </summary>
-        public static bool addCategoryNameToLog = false;
-
-        /// <summary>
-        ///  the option controls whether or not categories names will be prepended to log displays.
-        ///  </summary>
-        public static bool addCategoryNameToLogSingleLine = false;
+        public static bool addCategoryNameToLogSingleLine
+        {
+            get { return instance.addCategoryNameToLogSingleLine; }
+            set { instance.addCategoryNameToLogSingleLine = value; }
+        }
 
         /// <summary>
         /// stores the state of the alwaysShowWarnings Preference.  When true, warning will be displayed, even if logging for the category is disabled.
         /// </summary>
-        public static bool alwaysShowWarnings=true;
+        public static bool alwaysShowWarnings
+        {
+            get { return instance.alwaysShowWarnings; }
+            set { instance.alwaysShowWarnings = value; }
+        }
 
         /// <summary>
         /// when true, log entries that are not sent to unity console, but ARE sent to a log file, will include the stack trace in the file.  When false, stack trace will not be included.
         /// </summary>
-        public static bool logToFileIncludeStackStrace = true;
-
-
+        public static bool logToFileIncludeStackStrace
+        {
+            get { return instance.logToFileIncludeStackStrace; }
+            set { instance.logToFileIncludeStackStrace = value; }
+        }
         #endregion
 
-        /// <summary>
-        /// Text that includes the category name, and a label ("Category: ") for it.
-        /// </summary>
-        /// <param name="category">categoryID for which the name will be looked up.</param>
-        /// <returns></returns>
-        internal static string CategoryDisplayText(int category)
-        {
-            if (CatDebug.addCategoryNameToLogSingleLine)
-                return CatDebug.GetCategoryName(category) + ": ";
-            return "Category: " + CatDebug.GetCategoryName(category) + StringBuilderExtensions.NewLineString;
-        }
+
 
         /// <summary>
         /// This function will take an array of strings, and if a DEBUG build is running, it will concatenate together the strings and send the result to Debug.Log for display.
@@ -606,6 +713,7 @@ namespace EyE.Unity.CategoricalDebug
             instance.Log(category, message);
         }
 
+        #region append and prepend functions
         /// <summary>
         /// This function will store the provided text, and prepend it to the text of the next call to a Log function.  When finally displayed by a Log function, the prepend text will be reset to an empty string.
         /// This text is not prepended to error, exception or warning logs.
@@ -691,6 +799,7 @@ namespace EyE.Unity.CategoricalDebug
         {
             instance.AppendToNextLog(category, messageObjects);
         }
+        #endregion
 
         /// <summary>
         /// This function will take a single string, and if the category is enabled, and if a DEBUG build is running, it will send it to Debug.LogError for display.
@@ -701,12 +810,7 @@ namespace EyE.Unity.CategoricalDebug
         [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
         public static void LogError(int category, string message)
         {
-
-            if (addCategoryNameToLog)
-                UnityEngine.Debug.LogError(CategoryDisplayText(category) + message);
-            else
-                UnityEngine.Debug.LogError(message);
-
+            instance.LogError(category, message);
         }
 
         /// <summary>
@@ -718,13 +822,7 @@ namespace EyE.Unity.CategoricalDebug
         [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
         public static void LogWarning(int category, string message)
         {
-            if (alwaysShowWarnings || DebugCategoryRegistrar.GetCategoryState(category))
-            {
-                if (addCategoryNameToLog)
-                    UnityEngine.Debug.LogWarning(CategoryDisplayText(category) + message);
-                else
-                    UnityEngine.Debug.LogWarning(message);
-            }
+            instance.LogWarning(category, message);
         }
 
         /// <summary>
@@ -739,27 +837,6 @@ namespace EyE.Unity.CategoricalDebug
             if (s == null) return "Unassigned Category.";
             return s;
         }
-
-
-
-        static System.IO.StreamWriter logFileStream =null;
-        private readonly static object logStreamThreadLock = new object();
-        
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="s"></param>
-        internal static void ToFile(string s)
-        {
-            StringBuilder builder = new StringBuilder(s);
-            if (logToFileIncludeStackStrace)
-                builder.Append(StringBuilderExtensions.NewLineString, "StackTrace: ", StringBuilderExtensions.NewLineString, System.Environment.StackTrace);
-            lock (logStreamThreadLock)
-            {
-                logFileStream.WriteLine(builder);
-            }
-        }
-
 
     }//End Cat Debug
 }

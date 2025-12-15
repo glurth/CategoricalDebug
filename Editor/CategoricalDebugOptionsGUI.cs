@@ -208,7 +208,7 @@ namespace EyE.EditorUnity.CategoricalDebug
             GUIStyle nonbreakingLabelStyle= new GUIStyle(GUI.skin.textArea);
             nonbreakingLabelStyle.wordWrap = true;
             
-            EditorGUILayout.LabelField("To add new Categories for Debug Log, you must invoke DebugCategoryRegistrar.RegisterCategory(string categoryName) in your code, before using the category.", nonbreakingLabelStyle);//,GUILayout.ExpandHeight(true));
+            //EditorGUILayout.LabelField("To add new Categories for Debug Log, you must invoke DebugCategoryRegistrar.RegisterCategory(string categoryName) in your code, before using the category.", nonbreakingLabelStyle);//,GUILayout.ExpandHeight(true));
         }// end DisplayCategoriesOnGUI
 
     }// end class

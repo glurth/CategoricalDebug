@@ -106,7 +106,7 @@ namespace EyE.Unity.CategoricalDebug
             => Instance.CategoryName;
     }
 
-    class CatLogLog : CategoryLogBase<CatLogLog>
+    class CatDebugLog : CategoryLogBase<CatDebugLog>
     {
         protected override string CategoryName => "CetegoricalLoggingItself";
     }
