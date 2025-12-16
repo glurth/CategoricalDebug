@@ -182,11 +182,7 @@ namespace EyE.Debug
             {
                 return catID;
             }
-            /*foreach (DebugCategorySettings settingsPref in catDebugLoggingInfo.Values)
-            {
-                if (settingsPref.name == catName)
-                    return settingsPref.category;
-            }*/
+
             return -1;
         }
 
@@ -197,7 +193,7 @@ namespace EyE.Debug
         /// <returns>The name of the category.  if not registered, returns null.</returns>
         public static string GetCategoryName(int catID)
         {
-            return catDebugLoggingInfo[catID].name;
+            return GetCategorySettings(catID).name;
         }
 
         /// <summary>
@@ -207,10 +203,10 @@ namespace EyE.Debug
         /// <returns>The enabled state of the category.  if not registered, returns null.</returns>
         public static PerCategoryDebugSettings GetCategorySettings(int catID)
         {
-
-            if (catDebugLoggingInfo.ContainsKey(catID))
-                return catDebugLoggingInfo[catID];
-            return null;
+            PerCategoryDebugSettings retVal;
+            if(!catDebugLoggingInfo.TryGetValue(catID, out retVal))
+                throw new System.IndexOutOfRangeException("DebugCategoryRegistrar.GetCategorySettings failed to find requested category, with ID " + catID);
+            return retVal;
         }
 
 
@@ -218,10 +214,10 @@ namespace EyE.Debug
         /// Generates a list of all the Registered category names, and puts them into the string List reference provided
         /// </summary>
         /// <param name="outputList">This ref parameter will be filled with all the Registered Names after calling this function.</param>
-        public static void GetAllRegisteredCategoryNames(ref System.Collections.Generic.List<string> outputList)
+        public static void GetAllRegisteredCategoryNames(ref List<string> outputList)
         {
             if (outputList == null)
-                outputList = new System.Collections.Generic.List<string>();
+                outputList = new List<string>();
             else
                 outputList.Clear();
 

@@ -50,8 +50,8 @@ namespace EyE.EditorUnity
             // Only run once
             if (EditorPrefs.GetBool(EditorPrefKey_OneTimePassDone, false))
                 return;
-            UnityEngine.Debug.Log("Categorical Debug one-time-pass:  Assigning build define symbol " + CatDebug.CONDITONAL_DEFINE_STRING + " in player build options.  Can be removed manually in player settings, or via toggle in Edit->Categorical Debug Settings");
-            DefineSymbolUtility.AddSymbol(CatDebug.CONDITONAL_DEFINE_STRING);
+            UnityEngine.Debug.Log("Categorical Debug one-time-pass:  Assigning build define symbol " + CatDebug.CONDITIONAL_DEFINE_STRING + " in player build options.  Can be removed manually in player settings, or via toggle in Edit->Categorical Debug Settings");
+            DefineSymbolUtility.AddSymbol(CatDebug.CONDITIONAL_DEFINE_STRING);
             EditorPrefs.SetBool(EditorPrefKey_OneTimePassDone, true);
         }
     }

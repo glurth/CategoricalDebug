@@ -53,21 +53,21 @@ namespace EyE.Debug
 
         // ---------- Boolean asserts (delegated) ----------
 
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        [Conditional(CatDebug.CONDITIONAL_DEFINE_STRING)]
         public static void IsTrue(bool b, string failMessage, object context = null)
         {
             if (!Instance.Active) return;
             Assert.isTrue(b, failMessage, context);
         }
 
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        [Conditional(CatDebug.CONDITIONAL_DEFINE_STRING)]
         public static void IsFalse(bool b, string failMessage, object context = null)
         {
             if (!Instance.Active) return;
             Assert.isFalse(b, failMessage, context);
         }
 
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        [Conditional(CatDebug.CONDITIONAL_DEFINE_STRING)]
         public static void ExpensiveIsTrue<T>(Func<bool> condition, string failMessage, object context = null)
         {
             if (!Instance.Active) return;
@@ -76,21 +76,21 @@ namespace EyE.Debug
 
         // ---------- Null checks ----------
 
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        [Conditional(CatDebug.CONDITIONAL_DEFINE_STRING)]
         public static void IsNotNull(object obj, string failMessage, object context = null)
         {
             if (!Instance.Active) return;
             Assert.isNotNull(obj, failMessage, context);
         }
 
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        [Conditional(CatDebug.CONDITIONAL_DEFINE_STRING)]
         public static void AreNotNull(string failMessage, params object[] objs)
         {
             if (!Instance.Active) return;
             Assert.areNotNull(failMessage, objs);
         }
 
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        [Conditional(CatDebug.CONDITIONAL_DEFINE_STRING)]
         public static void AreNotNullWithContext(string failMessage, object context, params object[] objs)
         {
             if (!Instance.Active) return;
@@ -99,7 +99,7 @@ namespace EyE.Debug
 
         // ---------- Equality ----------
 
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        [Conditional(CatDebug.CONDITIONAL_DEFINE_STRING)]
         public static void IsEqual<T>(T expected, T actual, string failMessage, object context = null)
             where T : IEquatable<T>
         {
@@ -109,7 +109,7 @@ namespace EyE.Debug
 
         // ---------- Type ----------
 
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        [Conditional(CatDebug.CONDITIONAL_DEFINE_STRING)]
         public static void Is<T>(object obj, string failMessage)
         {
             if (!Instance.Active) return;
@@ -118,35 +118,35 @@ namespace EyE.Debug
 
         // ---------- Generic display variants ----------
 
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        [Conditional(CatDebug.CONDITIONAL_DEFINE_STRING)]
         public static void IsTrue<T>(bool b, string failMessage, object context = null)
         {
             if (!Instance.Active) return;
             Assert.isTrue<T>(b, failMessage, context);
         }
 
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        [Conditional(CatDebug.CONDITIONAL_DEFINE_STRING)]
         public static void IsFalse<T>(bool b, string failMessage, object context = null)
         {
             if (!Instance.Active) return;
             Assert.isFalse<T>(b, failMessage, context);
         }
 
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        [Conditional(CatDebug.CONDITIONAL_DEFINE_STRING)]
         public static void IsNotNull<T>(object obj, string failMessage, object context = null)
         {
             if (!Instance.Active) return;
             Assert.isNotNull<T>(obj, failMessage, context);
         }
 
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        [Conditional(CatDebug.CONDITIONAL_DEFINE_STRING)]
         public static void AreNotNull<T>(string failMessage, params object[] objs)
         {
             if (!Instance.Active) return;
             Assert.areNotNull<T>(failMessage, objs);
         }
 
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        [Conditional(CatDebug.CONDITIONAL_DEFINE_STRING)]
         public static void AreNotNullWithContext<T>(string failMessage, object context, params object[] objs)
         {
             if (!Instance.Active) return;

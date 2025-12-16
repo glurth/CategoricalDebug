@@ -7,10 +7,14 @@ namespace EyE.Debug
 {
     static class StringBuilderExtensions
     {
-        static public void Append(this StringBuilder stringBuilder, params string[] strings)
+        static public void Append(this StringBuilder stringBuilder, params object[] objectArray)
         {
-            foreach (string s in strings)
-                stringBuilder.Append(s);
+            if (objectArray != null)
+            {
+                foreach (object o in objectArray)
+                    stringBuilder.Append(o);
+            }
+
         }
 
         static public string NewLineString
@@ -20,18 +24,13 @@ namespace EyE.Debug
 
         static public string ObjectArrayToString(params object[] objectArray)
         {
-            StringBuilder temp= new StringBuilder();
-            if (objectArray != null)
-            {
-                foreach (object o in objectArray)
-                    temp.Append(o);
-            }
-            return temp.ToString();
+            return new StringBuilder().Append(objectArray).ToString();
         }
     }
 
     /// <summary>
     /// Instanced Version of CatDebug.  Create an new instance of this class when you want to log in a separate thread and use it's own prepend/append values.
+    /// Otherwise, it is recommened to use the static CatDebug class instead.
     /// </summary>
     public class CatDebugInstance
     {
@@ -134,7 +133,7 @@ namespace EyE.Debug
         #region fileStream
         public readonly string catLogFilePath = "CategoricalLog.txt"; //will store in root of project folder.
         static System.IO.StreamWriter logFileStream = null;
-        private readonly object logStreamThreadLock = new object();
+        private static readonly object logStreamThreadLock = new object();
 
         /// <summary>
         /// Static constructor for this class, performs initialization the first time the class is touched.
@@ -151,7 +150,7 @@ namespace EyE.Debug
                 }
                 catch
                 {
-                    CatDebugLog.LogWarning("Failed to delete existing log file "+ catLogFilePath+ ", (possibly open).  Trying Write anyway.");
+                    UnityEngine.Debug.LogWarning("Failed to delete existing log file "+ catLogFilePath+ ", (possibly open).  Trying Write anyway.");
                 }
             }
 
@@ -164,14 +163,14 @@ namespace EyE.Debug
             }
             catch
             {
-                CatDebugLog.LogWarning("Failed to create file " + catLogFilePath);
+                UnityEngine.Debug.LogWarning("Failed to create file " + catLogFilePath);
             }
             
         }
 
         void FlushAndCloseStream()
         {
-            CatDebugLog.Log("Flushing and closing log file stream.");
+            CatDebugLog.Log("Flushing and closing log file stream.");//before closing.
             if (logFileStream != null)
             {
                 logFileStream.Flush();
@@ -181,11 +180,12 @@ namespace EyE.Debug
 
 
         /// <summary>
-        /// Write message to current file stream.
+        /// Write message to current file stream, if valid.
         /// </summary>
         /// <param name="s">message to write</param>
         internal void ToFile(string s)
         {
+            Assert.isNotNull(logFileStream, "Failure attempting to write to Log File: provided stream for file ("+catLogFilePath+"), is invalid.");
             StringBuilder builder = new StringBuilder(s);
             if (logToFileIncludeStackStrace)
                 builder.Append(StringBuilderExtensions.NewLineString, "StackTrace: ", StringBuilderExtensions.NewLineString, System.Environment.StackTrace);
@@ -201,7 +201,7 @@ namespace EyE.Debug
         /// This function will take an array of strings, and if a build with CatDebug.CONDITONAL_DEFINE_STRING ("EYE_DEBUG") defined is running, it will concatenate together the strings and send the result to Debug.Log for display.
         /// </summary>
         /// <param name="message">A set of string parameters that will be concatenated and sent to Debug.Log for display.</param>
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        [Conditional(CatDebug.CONDITIONAL_DEFINE_STRING)]
         public void Log(params object[] message)
         {
             Log(StringBuilderExtensions.ObjectArrayToString(message));
@@ -211,7 +211,7 @@ namespace EyE.Debug
         /// This function will take an array of strings, and if a build with CatDebug.CONDITONAL_DEFINE_STRING ("EYE_DEBUG") defined is running, it will concatenate together the strings and send the result to Debug.Log for display.
         /// </summary>
         /// <param name="message">A set of string parameters that will be concatenated and sent to Debug.Log for display.</param>
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        [Conditional(CatDebug.CONDITIONAL_DEFINE_STRING)]
         public void Log(string message)
         {
             StringBuilder outputMessage = new StringBuilder();
@@ -222,7 +222,7 @@ namespace EyE.Debug
             outputMessage.Append(message);
             outputMessage.Append(appendText);
             appendText.Clear();
-            UnityEngine.Debug.Log(message);
+            UnityEngine.Debug.Log(outputMessage);
         }
 
         /// <summary>
@@ -231,7 +231,7 @@ namespace EyE.Debug
         /// </summary>
         /// <param name="category">Only if this Category index is enabled will this function display a log.  With the appropriate options selected, this category's name may be prepended the log entry.</param>
         /// <param name="message">A string sent to Debug.Log for display.</param>
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        [Conditional(CatDebug.CONDITIONAL_DEFINE_STRING)]
         public void Log(int category, string message)
         {
             Log(category, new string[1] { message });
@@ -246,7 +246,7 @@ namespace EyE.Debug
         /// </summary>
         /// <param name="category">Only if this Category index is enabled will this function display a log.  With the appropriate options selected, this category's name may be prepended the log entry.</param>
         /// <param name="message">A set of string parameters that will be concatenated and sent to Debug.Log for display.</param>
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        [Conditional(CatDebug.CONDITIONAL_DEFINE_STRING)]
         public void Log(int category, params object[] message)
         {
             StringBuilder output = new StringBuilder();
@@ -276,7 +276,7 @@ namespace EyE.Debug
         /// </summary>
         /// <param name="categoryName">The category name determines which category will be checked. Only if this category has been registered, and is enabled will the function display the message.</param>
         /// <param name="message">A set of string parameters that will be concatenated and sent to Debug.Log for display.</param>
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        [Conditional(CatDebug.CONDITIONAL_DEFINE_STRING)]
         public void Log(string categoryName, params object[] message)
         {
             int categoryID = DebugCategoryRegistrar.GetCategoryID(categoryName);
@@ -290,7 +290,7 @@ namespace EyE.Debug
         /// </summary>
         /// <param name="category">Errors are always logged. With the appropriate options selected, this category's name may be prepended the log entry.</param>
         /// <param name="message">A string sent to Debug.LogError for display.</param>
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        [Conditional(CatDebug.CONDITIONAL_DEFINE_STRING)]
         public void LogError(int category, string message)
         {
 
@@ -310,7 +310,7 @@ namespace EyE.Debug
         /// </summary>
         /// <param name="category">Only if this Category index is enabled, or the alwaysShowWarnings option is set to true, will this function display a log.  With the appropriate options selected, this category's name may be prepended the log entry.</param>
         /// <param name="message">A string sent to Debug.LogWarning for display.</param>
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        [Conditional(CatDebug.CONDITIONAL_DEFINE_STRING)]
         public void LogWarning(int category, string message)
         {
             PerCategoryDebugSettings settings = DebugCategoryRegistrar.GetCategorySettings(category);
@@ -468,7 +468,7 @@ namespace EyE.Debug
         /// Calling this function multiple times, will grow the prepend text, by appending the passed message to it.
         /// </summary>
         /// <param name="message">Text that will be prepended to the next log message</param>
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        [Conditional(CatDebug.CONDITIONAL_DEFINE_STRING)]
         public void PrependToNextLog(string message)
         {
             prependText.Append(message);
@@ -477,7 +477,7 @@ namespace EyE.Debug
         /// <summary>
         /// Clears the prepend text used when no category is provided.
         /// </summary>
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        [Conditional(CatDebug.CONDITIONAL_DEFINE_STRING)]
         public void ClearPrependText()
         {
             prependText.Clear();
@@ -493,7 +493,7 @@ namespace EyE.Debug
         /// </summary>
         /// <param name="category">Only if this Category index is enabled will this function Prepend to the next log (which may be of a different category)</param>
         /// <param name="message">Text that will be prepended to the next log message</param>
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        [Conditional(CatDebug.CONDITIONAL_DEFINE_STRING)]
         public void PrependToNextLog(int category, string message)
         {
             AppendOrAddMessgeToTextByCategoryDictionary(category, new string[1] { message }, prependTextByCategory);
@@ -503,7 +503,7 @@ namespace EyE.Debug
         /// Clears the prepend text for the provided category, if any exists.
         /// </summary>
         /// <param name="category">category to clear the prepend Text for</param>
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        [Conditional(CatDebug.CONDITIONAL_DEFINE_STRING)]
         public void ClearPrependText(int category)
         {
             StringBuilderAndLock prependStringBuilder;
@@ -523,7 +523,7 @@ namespace EyE.Debug
         /// </summary>
         /// <param name="category">Only if this Category index is enabled will this function Prepend to the next log (which may be of a different category)</param>
         /// <param name="messageObjects">Array of objects that will be converted to strings, then are be prepended to the next log message</param>
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        [Conditional(CatDebug.CONDITIONAL_DEFINE_STRING)]
         public void PrependToNextLog(int category, params object[] messageObjects)
         {
             AppendOrAddMessgeToTextByCategoryDictionary(category, messageObjects, prependTextByCategory);
@@ -539,7 +539,7 @@ namespace EyE.Debug
         /// Calling this function multiple times, will grow the prepend text, by appending the passed message to it.
         /// </summary>
         /// <param name="message">Text that will be appended to the next log message</param>
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        [Conditional(CatDebug.CONDITIONAL_DEFINE_STRING)]
         public void AppendToNextLog(string message)
         {
             appendText.Append(message);
@@ -548,7 +548,7 @@ namespace EyE.Debug
         /// <summary>
         /// Clears the prepend text used when no category is provided.
         /// </summary>
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        [Conditional(CatDebug.CONDITIONAL_DEFINE_STRING)]
         public void ClearAppendText()
         {
             appendText.Clear();
@@ -561,7 +561,7 @@ namespace EyE.Debug
         /// </summary>
         /// <param name="category">Only if this Category index is enabled will this function append to the next log (which may be of a different category)</param>
         /// <param name="message">Text that will be appended to the next log message</param>
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        [Conditional(CatDebug.CONDITIONAL_DEFINE_STRING)]
         public void AppendToNextLog(int category, string message)
         {
             AppendOrAddMessgeToTextByCategoryDictionary(category, new string[1] { message }, appendTextByCategory);
@@ -571,7 +571,7 @@ namespace EyE.Debug
         /// Clears the append text for the provided category, if any exists.
         /// </summary>
         /// <param name="category">category to clear the prepend Text for</param>
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        [Conditional(CatDebug.CONDITIONAL_DEFINE_STRING)]
         public void ClearAppendText(int category)
         {
             StringBuilderAndLock appendStringBuilder;
@@ -588,7 +588,7 @@ namespace EyE.Debug
         /// </summary>
         /// <param name="category">Only if this Category index is enabled will this function append to the next log (which may be of a different category)</param>
         /// <param name="messageObjects">Array of objects that will be converted to strings, then are be appended to the next log message</param>
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        [Conditional(CatDebug.CONDITIONAL_DEFINE_STRING)]
         public void AppendToNextLog(int category, params object[] messageObjects)
         {
             AppendOrAddMessgeToTextByCategoryDictionary(category, messageObjects, appendTextByCategory);
@@ -625,12 +625,12 @@ namespace EyE.Debug
     }
 
     /// <summary>
-    ///  This static class allows the programmer to specify a CategoryIndex, each time a Debug Log used is taken.  
-    ///  Each category may be enabled or disabled individually.  Disabled categories, will NOT display Debug Log messages.
+    /// This static singleton of the CatDebugInstance class, is used by the DebugCategoryRegistrar and unity editor components for UI.
+    /// Allow logging by category, each of which may be enabled or disabled individually.  Disabled categories, will NOT output messages, log to file, or throw asserts, depending on the category's settings.
     /// </summary>
     public static class CatDebug
     {
-        public const string CONDITONAL_DEFINE_STRING = "EYE_DEBUG";
+        public const string CONDITIONAL_DEFINE_STRING = "EYE_DEBUG";
         
         static CatDebugInstance instance = new CatDebugInstance();
 
@@ -644,7 +644,7 @@ namespace EyE.Debug
             CatDebug.addCategoryNameToLog = CatDebugGlobalOptions.addCategoryNameToLog;
             CatDebug.addCategoryNameToLogSingleLine = CatDebugGlobalOptions.addCategoryNameToLogSingleLine;
             CatDebug.alwaysShowWarnings = CatDebugGlobalOptions.alwaysShowWarnings;
-            CatDebug.logToFileIncludeStackStrace = CatDebugGlobalOptions.logToFileIncludeStackTrace;
+            CatDebug.logToFileIncludeStackTrace = CatDebugGlobalOptions.logToFileIncludeStackTrace;
 
         }
 
@@ -682,7 +682,7 @@ namespace EyE.Debug
         /// <summary>
         /// when true, log entries that are not sent to unity console, but ARE sent to a log file, will include the stack trace in the file.  When false, stack trace will not be included.
         /// </summary>
-        public static bool logToFileIncludeStackStrace
+        public static bool logToFileIncludeStackTrace
         {
             get { return instance.logToFileIncludeStackStrace; }
             set { instance.logToFileIncludeStackStrace = value; }
@@ -693,7 +693,7 @@ namespace EyE.Debug
         /// This function will take an array of strings, and if a DEBUG build is running, it will concatenate together the strings and send the result to Debug.Log for display.
         /// </summary>
         /// <param name="message">A set of string parameters that will be concatenated and sent to Debug.Log for display.</param>
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        [Conditional(CatDebug.CONDITIONAL_DEFINE_STRING)]
         public static void Log(string message)
         {
             instance.Log(message);
@@ -707,7 +707,7 @@ namespace EyE.Debug
         /// </summary>
         /// <param name="category">Only if this Category index is enabled will this function display a log.  With the appropriate options selected, this category's name may be prepended the log entry.</param>
         /// <param name="message">A set of string parameters that will be concatenated and sent to Debug.Log for display.</param>
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        [Conditional(CatDebug.CONDITIONAL_DEFINE_STRING)]
         public static void Log(int category, params object[] message)
         {
             instance.Log(category, message);
@@ -719,7 +719,7 @@ namespace EyE.Debug
         /// </summary>
         /// <param name="category">Only if this Category index is enabled will this function display a log.  With the appropriate options selected, this category's name may be prepended the log entry.</param>
         /// <param name="message">A string sent to Debug.Log for display.</param>
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        [Conditional(CatDebug.CONDITIONAL_DEFINE_STRING)]
         public static void Log(int category, string message)
         {
             instance.Log(category, message);
@@ -731,7 +731,7 @@ namespace EyE.Debug
         /// </summary>
         /// <param name="category">Errors are always logged. With the appropriate options selected, this category's name may be prepended the log entry.</param>
         /// <param name="message">A string sent to Debug.LogError for display.</param>
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        [Conditional(CatDebug.CONDITIONAL_DEFINE_STRING)]
         public static void LogError(int category, string message)
         {
             instance.LogError(category, message);
@@ -743,7 +743,7 @@ namespace EyE.Debug
         /// </summary>
         /// <param name="category">Only if this Category index is enabled, or the alwaysShowWarnings option is set to true, will this function display a log.  With the appropriate options selected, this category's name may be prepended the log entry.</param>
         /// <param name="message">A string sent to Debug.LogWarning for display.</param>
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        [Conditional(CatDebug.CONDITIONAL_DEFINE_STRING)]
         public static void LogWarning(int category, string message)
         {
             instance.LogWarning(category, message);
@@ -756,7 +756,7 @@ namespace EyE.Debug
         /// Calling this function multiple times, will grow the prepend text, by appending the passed message to it.
         /// </summary>
         /// <param name="message">Text that will be prepended to the next log message</param>
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        [Conditional(CatDebug.CONDITIONAL_DEFINE_STRING)]
         public static void PrependToNextLog(string message)
         {
             instance.PrependToNextLog(message);
@@ -772,7 +772,7 @@ namespace EyE.Debug
         /// </summary>
         /// <param name="category">Only if this Category index is enabled will this function Prepend to the next log (which may be of a different category)</param>
         /// <param name="message">Text that will be prepended to the next log message</param>
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        [Conditional(CatDebug.CONDITIONAL_DEFINE_STRING)]
         public static void PrependToNextLog(int category, string message)
         {
             instance.PrependToNextLog(category, message);
@@ -788,7 +788,7 @@ namespace EyE.Debug
         /// </summary>
         /// <param name="category">Only if this Category index is enabled will this function Prepend to the next log (which may be of a different category)</param>
         /// <param name="messageObjects">Array of objects that will be converted to strings, then are be prepended to the next log message</param>
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        [Conditional(CatDebug.CONDITIONAL_DEFINE_STRING)]
         public static void PrependToNextLog(int category, params object[] messageObjects)
         {
             instance.PrependToNextLog(category, messageObjects);
@@ -804,7 +804,7 @@ namespace EyE.Debug
         /// Calling this function multiple times, will grow the prepend text, by appending the passed message to it.
         /// </summary>
         /// <param name="message">Text that will be appended to the next log message</param>
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        [Conditional(CatDebug.CONDITIONAL_DEFINE_STRING)]
         public static void AppendToNextLog(string message)
         {
             instance.AppendToNextLog(message);
@@ -817,7 +817,7 @@ namespace EyE.Debug
         /// </summary>
         /// <param name="category">Only if this Category index is enabled will this function append to the next log (which may be of a different category)</param>
         /// <param name="message">Text that will be appended to the next log message</param>
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        [Conditional(CatDebug.CONDITIONAL_DEFINE_STRING)]
         public static void AppendToNextLog(int category, string message)
         {
             instance.AppendToNextLog(category, message);
@@ -830,7 +830,7 @@ namespace EyE.Debug
         /// </summary>
         /// <param name="category">Only if this Category index is enabled will this function append to the next log (which may be of a different category)</param>
         /// <param name="messageObjects">Array of objects that will be converted to strings, then are be appended to the next log message</param>
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        [Conditional(CatDebug.CONDITIONAL_DEFINE_STRING)]
         public static void AppendToNextLog(int category, params object[] messageObjects)
         {
             instance.AppendToNextLog(category, messageObjects);

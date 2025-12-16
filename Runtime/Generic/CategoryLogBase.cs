@@ -52,37 +52,37 @@ namespace EyE.Debug
 
         // ---------- Logging ----------
 
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        [Conditional(CatDebug.CONDITIONAL_DEFINE_STRING)]
         public static void Log(string message)
         {
             CatDebug.Log(Instance.categoryID, message);
         }
 
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        [Conditional(CatDebug.CONDITIONAL_DEFINE_STRING)]
         public static void Log(params object[] message)
         {
             CatDebug.Log(Instance.categoryID, message);
         }
 
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        [Conditional(CatDebug.CONDITIONAL_DEFINE_STRING)]
         public static void LogWarning(string message)
         {
             CatDebug.LogWarning(Instance.categoryID, message);
         }
 
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        [Conditional(CatDebug.CONDITIONAL_DEFINE_STRING)]
         public static void LogError(string message)
         {
             CatDebug.LogError(Instance.categoryID, message);
         }
 
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        [Conditional(CatDebug.CONDITIONAL_DEFINE_STRING)]
         public static void PrependToNextLog(params object[] message)
         {
             CatDebug.PrependToNextLog(Instance.categoryID, message);
         }
 
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        [Conditional(CatDebug.CONDITIONAL_DEFINE_STRING)]
         public static void AppendToNextLog(params object[] message)
         {
             CatDebug.AppendToNextLog(Instance.categoryID, message);

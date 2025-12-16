@@ -39,10 +39,10 @@ namespace EyE.EditorUnity
             {
                 EditorGUILayout.BeginHorizontal();
                 EditorGUILayout.LabelField(new GUIContent("Enabled via Compiler Directive", "  Turing this setting off will disable all processing of logging and asserts, **including evaluating parameters**.\n  Recommend: turn off for Release build.\n  Note: Changing this setting may force rebuild or domain reload"), GUILayout.Width(250)); // Set an explicit width for the label
-                bool defineSet = IsSymbolDefined(CatDebug.CONDITONAL_DEFINE_STRING);
+                bool defineSet = IsSymbolDefined(CatDebug.CONDITIONAL_DEFINE_STRING);
                 bool newDefineSet = EditorGUILayout.Toggle(defineSet, GUILayout.ExpandWidth(true));
                 if (defineSet != newDefineSet)
-                    UpdatePlayerBuildSettingsDefine(CatDebug.CONDITONAL_DEFINE_STRING, newDefineSet);
+                    UpdatePlayerBuildSettingsDefine(CatDebug.CONDITIONAL_DEFINE_STRING, newDefineSet);
                 EditorGUILayout.EndHorizontal();
 
 
@@ -102,9 +102,9 @@ namespace EyE.EditorUnity
         static void UpdatePlayerBuildSettingsDefine(string defineSymbol, bool enabled)
         {
             if(enabled)
-                DefineSymbolUtility.AddSymbol(CatDebug.CONDITONAL_DEFINE_STRING);
+                DefineSymbolUtility.AddSymbol(CatDebug.CONDITIONAL_DEFINE_STRING);
             else
-                DefineSymbolUtility.RemoveSymbol(CatDebug.CONDITONAL_DEFINE_STRING);
+                DefineSymbolUtility.RemoveSymbol(CatDebug.CONDITIONAL_DEFINE_STRING);
 
         }
         static bool IsSymbolDefined(string symbol, BuildTargetGroup group = BuildTargetGroup.Standalone)
