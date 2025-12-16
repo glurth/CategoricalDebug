@@ -2,7 +2,7 @@
 
 using System.Collections.Generic;
 
-namespace EyE.Unity.CategoricalDebug
+namespace EyE.Debug
 {
     static public class PlayerPrefUtil
     {
@@ -16,113 +16,6 @@ namespace EyE.Unity.CategoricalDebug
     }
 
     /// <summary>
-    /// Per-Category settings, stored in playerprefs using a key based on the category ID.
-    /// </summary>
-    [System.Serializable]
-    public class DebugCategorySettings
-    {
-        /// <summary>
-        /// user assigned name of the category
-        /// </summary>
-        public string name = "no category assigned";
-        /// <summary>
-        /// CategoryID integer: received from registrar when first registered.
-        /// </summary>
-        public int category;
-        /// <summary>
-        /// Main control: is this category enabled.
-        /// </summary>
-        public bool logEnabled = true;
-
-        /// <summary>
-        /// Logs to file only, but not console, if logEnabled is false and this is true.
-        /// Must be set to false to COMPLETELY disable logging.
-        /// </summary>
-        public bool alwaysLogToFile = false;
-
-        public static DebugCategorySettings Default => new DebugCategorySettings();
-        private string Key => DebugCategoryRegistrar.KeyBaseForCatID(category);
-    
-        public void Save()
-        {
-            PlayerPrefs.SetString(NameKey(), name);
-            PlayerPrefs.SetInt(EnabledKey(), logEnabled ? 1 : 0);
-            PlayerPrefs.SetInt(AlwaysLogToFilekey(), alwaysLogToFile ? 1 : 0);
-            PlayerPrefs.Save();
-        }
-
-        /// <summary>
-        /// Attempts to load the settings with the given catID from PlauerPrefs
-        /// </summary>
-        /// <param name="catID"></param>
-        /// <returns>return the found settings, or null if not found</returns>
-        public static DebugCategorySettings Load(int catID)
-        {
-            DebugCategorySettings newInst = new DebugCategorySettings(){ category = catID };
-            if (newInst.TryLoad())
-                return newInst;
-            return null;
-
-        }
-        //uses category field, to load an potential overwrite all other fields.
-        /// <summary>
-        /// uses CategoryID to Load settings from player Prefs.  If not found, the default value are assigned.
-        /// Overwrites existing stored values (other than `int category`)
-        /// </summary>
-        public void Load()
-        {
-            if(!TryLoad())
-            {
-                UnityEngine.Debug.Log($"Category at key: {NameKey()} does not exist. Using defaults.");
-                name = DebugCategorySettings.Default.name;
-                logEnabled = DebugCategorySettings.Default.logEnabled;
-                alwaysLogToFile = DebugCategorySettings.Default.alwaysLogToFile;
-            }
-        }
-        //uses category field, to load an potentially overwrite all other fields.
-
-        /// <summary>
-        /// uses Categoryid to Load settings from player Prefs.  If not found, returns false, and does not alter any fields.
-        /// </summary>
-        /// <returns></returns>
-        public bool TryLoad()
-        {
-            if (PlayerPrefs.HasKey(NameKey()))
-            {
-                name = PlayerPrefs.GetString(NameKey(), name);
-                logEnabled = PlayerPrefs.GetInt(EnabledKey(), logEnabled.ToInt()).ToBool();
-                alwaysLogToFile = PlayerPrefs.GetInt(AlwaysLogToFilekey(), alwaysLogToFile.ToInt()).ToBool(); 
-                return true;
-            }
-            return false;
-        }
-        public void Delete()
-        {
-            if (PlayerPrefs.HasKey(NameKey()))
-            {
-                PlayerPrefs.DeleteKey(NameKey());
-                PlayerPrefs.DeleteKey(EnabledKey());
-                PlayerPrefs.DeleteKey(AlwaysLogToFilekey());
-            }
-
-        }
-
-        public void SetToDefault()
-        {
-            name = DebugCategorySettings.Default.name;
-            logEnabled = DebugCategorySettings.Default.logEnabled;
-            alwaysLogToFile = DebugCategorySettings.Default.alwaysLogToFile;
-            Save();
-        }
-
-        private string NameKey() => Key + "/Name";
-        private string EnabledKey() => Key + "/Enabled";
-        private string AlwaysLogToFilekey() => Key + "/alwaysLogToFile";
-
-
-    }//end CategoricalDebug namespace
-
-    /// <summary>
     /// This class provides functionality to easily register categories for use by CatDebug.    
     /// It also provides functions that allow getting/setting the enabled state or name of a particular category, and automatically stores these values to disk using Unity's PlayerPrefs.  
     /// If registered previously, these categories, and their states, are loaded from storage for initialization.
@@ -130,7 +23,7 @@ namespace EyE.Unity.CategoricalDebug
     public static class DebugCategoryRegistrar
     {
         const int maxCategoryID = 65001;
-        static Dictionary<int, DebugCategorySettings> catDebugLoggingInfo = new Dictionary<int, DebugCategorySettings>();
+        static Dictionary<int, PerCategoryDebugSettings> catDebugLoggingInfo = new Dictionary<int, PerCategoryDebugSettings>();
         static Dictionary<string, int> categoryIndexByName = new Dictionary<string, int>();
         public const string debugCategoryPreferencesKeyBase = "CatDebugKey";
         //this is used to build the keys for storage in player prefs
@@ -177,8 +70,6 @@ namespace EyE.Unity.CategoricalDebug
             if (setupComplete) return;
             setupComplete = true;
 
-
-            //CatDebugLog.PrependToNextLog("Initializing DebugCatRegistrar: START ... ");
             catDebugLoggingInfo.Clear();
             categoryIndexByName.Clear();
             for (int i = 0; i < maxCategoryID; i++)
@@ -187,7 +78,7 @@ namespace EyE.Unity.CategoricalDebug
                 if (exists) // a key with this value has been found! Load it.
                 {
                     
-                    DebugCategorySettings newSetting = DebugCategorySettings.Load(i);
+                    PerCategoryDebugSettings newSetting = PerCategoryDebugSettings.Load(i);
                     if (newSetting != null)
                     {
                         if (categoryIndexByName.ContainsKey(newSetting.name))
@@ -199,7 +90,6 @@ namespace EyE.Unity.CategoricalDebug
                         {
                             catDebugLoggingInfo.Add(i, newSetting);
                             categoryIndexByName.Add(newSetting.name, i);
-                            UnityEngine.Debug.Log("found entry for ID: " + i + " Category Name: " + newSetting.name);
                         }
                     }
                     
@@ -235,7 +125,7 @@ namespace EyE.Unity.CategoricalDebug
                     break;
             }
             // Debug.Log("Found first available key: "+ firstKeyAvaialble);
-            DebugCategorySettings newCategorySettings = new DebugCategorySettings();
+            PerCategoryDebugSettings newCategorySettings = new PerCategoryDebugSettings();
             newCategorySettings.name = catName;
             newCategorySettings.category = firstKeyAvaialble;
             newCategorySettings.logEnabled = true;
@@ -273,7 +163,7 @@ namespace EyE.Unity.CategoricalDebug
         {
             if (catID != -1)
             {
-                DebugCategorySettings settings = catDebugLoggingInfo[catID];
+                PerCategoryDebugSettings settings = catDebugLoggingInfo[catID];
                 catDebugLoggingInfo.Remove(catID);
                 categoryIndexByName.Remove(settings.name);
                 settings.Delete();
@@ -337,7 +227,7 @@ namespace EyE.Unity.CategoricalDebug
         /// </summary>
         /// <param name="catID">The index of the registered category to lookup.</param>
         /// <returns>The enabled state of the category.  if not registered, returns null.</returns>
-        public static DebugCategorySettings GetCategorySettings(int catID)
+        public static PerCategoryDebugSettings GetCategorySettings(int catID)
         {
 
             if (catDebugLoggingInfo.ContainsKey(catID))
@@ -391,7 +281,7 @@ namespace EyE.Unity.CategoricalDebug
                 outputList.Clear();
 
 
-            foreach (DebugCategorySettings sp in catDebugLoggingInfo.Values)
+            foreach (PerCategoryDebugSettings sp in catDebugLoggingInfo.Values)
             {
                 outputList.Add(sp.name);
             }
@@ -402,9 +292,9 @@ namespace EyE.Unity.CategoricalDebug
         /// Creates and returns a new list containing all the Registered category names.
         /// </summary>        
         /// <returns>The returned List of strings will be filled with all the Registered Names.</returns>
-        public static System.Collections.Generic.List<string> GetAllRegisteredCategoryNames()
+        public static List<string> GetAllRegisteredCategoryNames()
         {
-            System.Collections.Generic.List<string> outputList = new System.Collections.Generic.List<string>();
+            List<string> outputList = new List<string>();
             GetAllRegisteredCategoryNames(ref outputList);
             return outputList;
         }
@@ -413,16 +303,18 @@ namespace EyE.Unity.CategoricalDebug
         /// </summary>
         public static void DeleteAllSavedCategoryKeysFromPlayerPrefs()
         {
-            foreach (DebugCategorySettings sp in catDebugLoggingInfo.Values)
+            foreach (PerCategoryDebugSettings settings in catDebugLoggingInfo.Values)
             {
-                sp.Delete();
+                settings.Delete();
             }
             catDebugLoggingInfo.Clear();
             categoryIndexByName.Clear();
+
+            //DoubleCheck for any OTHER keys
             for (int i = 0; i < maxCategoryID; i++)
             {
-                string key = KeyBaseForCatID(i);// DebugCategorySettings.DebugPrefKeyByIndex(i);
-                bool exists = PlayerPrefs.HasKey(key);// CatDebug.debugCategoryEnabledPreferencesKeyBase + i.ToString());
+                string key = KeyBaseForCatID(i);
+                bool exists = PlayerPrefs.HasKey(key);
                 if (exists) // a key with this value has been found! Load it.
                     PlayerPrefs.DeleteKey(key);
             }

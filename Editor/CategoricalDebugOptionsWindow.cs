@@ -1,6 +1,6 @@
 ﻿using UnityEditor;
 
-namespace EyE.EditorUnity.CategoricalDebug
+namespace EyE.EditorUnity
 {
     public class CategoricalDebugOptionsWindow : EditorWindow
     {

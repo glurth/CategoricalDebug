@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text;
 
-namespace EyE.Unity.CategoricalDebug
+namespace EyE.Debug
 {
     static class StringBuilderExtensions
     {
@@ -622,19 +622,18 @@ namespace EyE.Unity.CategoricalDebug
         public const string CONDITONAL_DEFINE_STRING = "EYE_DEBUG";
 
         static CatDebugInstance instance = new CatDebugInstance();
-        
+
         /// <summary>
         /// Static constructor for this class, performs initialization the first time the class is touched.
-        /// opens logfile steam
+        /// Loads setting from PlayerPrefs via CatDebugOptions
         /// </summary>
         static CatDebug()
         {
-//            CatDebugLog.Log("Loading CatDebug Prefs");
             //general settings that affect all categories
-            CatDebug.addCategoryNameToLog = CatDebugOptions.addCategoryNameToLog;
-            CatDebug.addCategoryNameToLogSingleLine = CatDebugOptions.addCategoryNameToLogSingleLine;
-            CatDebug.alwaysShowWarnings = CatDebugOptions.alwaysShowWarnings;
-            CatDebug.logToFileIncludeStackStrace = CatDebugOptions.logToFileIncludeStackTrace;
+            CatDebug.addCategoryNameToLog = CatDebugGlobalOptions.addCategoryNameToLog;
+            CatDebug.addCategoryNameToLogSingleLine = CatDebugGlobalOptions.addCategoryNameToLogSingleLine;
+            CatDebug.alwaysShowWarnings = CatDebugGlobalOptions.alwaysShowWarnings;
+            CatDebug.logToFileIncludeStackStrace = CatDebugGlobalOptions.logToFileIncludeStackTrace;
 
         }
 
@@ -678,8 +677,6 @@ namespace EyE.Unity.CategoricalDebug
         }
         #endregion
 
-
-
         /// <summary>
         /// This function will take an array of strings, and if a DEBUG build is running, it will concatenate together the strings and send the result to Debug.Log for display.
         /// </summary>
@@ -703,19 +700,6 @@ namespace EyE.Unity.CategoricalDebug
         {
             instance.Log(category, message);
         }
-
-        /*
-        /// <summary>
-        /// This function takes a set of strings as parameters and uses the first one as the category, the rest are part of the message to be displayed.
-        /// The message is only displayed if the Category has been registered, and is enabled
-        /// </summary>
-        /// <param name="categoryName">The category name determines which category will be checked. Only if this category has been registered, and is enabled will the function display the message.</param>
-        /// <param name="message">A set of string parameters that will be concatenated and sent to Debug.Log for display.</param>
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
-        public static void Log(string categoryName, params string[] message)
-        {
-            instance.Log(categoryName, message);
-        }*/
 
         /// <summary>
         /// This function will take a single string, and if the category is enabled, and if a DEBUG build is running, it will send it to Debug.Log for display.

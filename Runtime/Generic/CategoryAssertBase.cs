@@ -1,8 +1,8 @@
 using System;
 using System.Diagnostics;
-using EyE.Debug;
 
-namespace EyE.Unity.CategoricalDebug
+//NOTE: this file references the Assert class defined in the same namespace, but in the dependency repo https://github.com/glurth/Assert 
+namespace EyE.Debug
 {
     /// <summary>
     /// Derive from this class to create a static category specific Assert class for use in your code.
@@ -23,8 +23,8 @@ namespace EyE.Unity.CategoricalDebug
         protected abstract string CategoryName { get; }
 
         private int? cachedCategory;
-        private DebugCategorySettings _categorySettingsRef = null;
-        public DebugCategorySettings categorySettings
+        private PerCategoryDebugSettings _categorySettingsRef = null;
+        public PerCategoryDebugSettings categorySettings
         {
             get
             {

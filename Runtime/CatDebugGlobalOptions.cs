@@ -1,12 +1,12 @@
 ﻿using UnityEngine;
-namespace EyE.Unity.CategoricalDebug
+namespace EyE.Debug
 {
     /// \ingroup CatDebug
     /// <summary>
     /// This class initializes and stores PlayerPrefs, which are persistent between sessions, that define how CatDebug will function.
     /// </summary>
 
-    public static class CatDebugOptions
+    public static class CatDebugGlobalOptions
     {
         public static bool addCategoryNameToLog
         {

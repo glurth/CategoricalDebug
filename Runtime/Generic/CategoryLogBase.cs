@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-namespace EyE.Unity.CategoricalDebug
+namespace EyE.Debug
 {
     /// <summary>
     /// Derive from this class to create a static category specific log class for use in your code.
@@ -23,8 +23,8 @@ namespace EyE.Unity.CategoricalDebug
         protected abstract string CategoryName { get; }
 
         private int? cachedCategorID;
-        private DebugCategorySettings _categorySettingsRef=null;
-        public DebugCategorySettings categorySettings
+        private PerCategoryDebugSettings _categorySettingsRef=null;
+        public PerCategoryDebugSettings categorySettings
         {
             get
             {

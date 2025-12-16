@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
 using UnityEditor;
-using EyE.Unity.CategoricalDebug;
+using EyE.Debug;
 
-namespace EyE.EditorUnity.CategoricalDebug
+namespace EyE.EditorUnity
 {
 
     public static class CatDebugGlobalOptionsEditor
@@ -20,13 +20,13 @@ namespace EyE.EditorUnity.CategoricalDebug
                 return;
 
             _addCategoryNameToLog =
-                CatDebugOptions.addCategoryNameToLog;
+                CatDebugGlobalOptions.addCategoryNameToLog;
             _addCategoryNameToLogSingleLine =
-                CatDebugOptions.addCategoryNameToLogSingleLine;
+                CatDebugGlobalOptions.addCategoryNameToLogSingleLine;
             _alwaysShowWarnings =
-                CatDebugOptions.alwaysShowWarnings;
+                CatDebugGlobalOptions.alwaysShowWarnings;
             _logToFileIncludeStackTrace =
-                CatDebugOptions.logToFileIncludeStackTrace;
+                CatDebugGlobalOptions.logToFileIncludeStackTrace;
 
             _loaded = true;
         }
@@ -75,13 +75,13 @@ namespace EyE.EditorUnity.CategoricalDebug
                 return;
 
             // Write only what changed
-            CatDebugOptions.addCategoryNameToLog =
+            CatDebugGlobalOptions.addCategoryNameToLog =
                 _addCategoryNameToLog;
-            CatDebugOptions.addCategoryNameToLogSingleLine =
+            CatDebugGlobalOptions.addCategoryNameToLogSingleLine =
                 _addCategoryNameToLogSingleLine;
-            CatDebugOptions.alwaysShowWarnings =
+            CatDebugGlobalOptions.alwaysShowWarnings =
                 _alwaysShowWarnings;
-            CatDebugOptions.logToFileIncludeStackTrace =
+            CatDebugGlobalOptions.logToFileIncludeStackTrace =
                 _logToFileIncludeStackTrace;
 
             PlayerPrefs.Save();
@@ -150,7 +150,7 @@ namespace EyE.EditorUnity.CategoricalDebug
 
             foreach (int i in DebugCategoryRegistrar.registeredIDs)
             {
-                DebugCategorySettings categoryOptions =
+                PerCategoryDebugSettings categoryOptions =
                     DebugCategoryRegistrar.GetCategorySettings(i);
 
                 if (categoryOptions == null)
