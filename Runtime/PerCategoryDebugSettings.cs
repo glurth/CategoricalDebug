@@ -12,108 +12,119 @@ namespace EyE.Debug
         /// user assigned name of the category
         /// </summary>
         public string name = "no category assigned";
+
         /// <summary>
         /// CategoryID integer: received from registrar when first registered.
         /// </summary>
         public int category;
-        /// <summary>
-        /// Main control: is this category enabled.
-        /// </summary>
-        public bool logEnabled = true;
 
         /// <summary>
-        /// Logs to file only, but not console, if logEnabled is false and this is true.
-        /// Must be set to false to COMPLETELY disable logging.
+        /// Enables logging to the Unity console.
         /// </summary>
-        public bool alwaysLogToFile = false;
+        public bool enableConsoleLogging = true;
+
+        /// <summary>
+        /// Enables logging to file.
+        /// </summary>
+        public bool enableFileLogging = false;
+
+        /// <summary>
+        /// Enables asserts for this category.
+        /// </summary>
+        public bool enableAsserts = true;
 
         public static PerCategoryDebugSettings Default => new PerCategoryDebugSettings();
+
         private string Key => DebugCategoryRegistrar.KeyBaseForCatID(category);
-    
+
         /// <summary>
-        /// Stores current values to PlayerPrefs- creates entiresif needed.
+        /// Stores current values to PlayerPrefs – creates entries if needed.
         /// </summary>
         public void Save()
         {
             PlayerPrefs.SetString(NameKey(), name);
-            PlayerPrefs.SetInt(EnabledKey(), logEnabled.ToInt());
-            PlayerPrefs.SetInt(AlwaysLogToFilekey(), alwaysLogToFile.ToInt());
+            PlayerPrefs.SetInt(ConsoleLoggingKey(), enableConsoleLogging.ToInt());
+            PlayerPrefs.SetInt(FileLoggingKey(), enableFileLogging.ToInt());
+            PlayerPrefs.SetInt(AssertsKey(), enableAsserts.ToInt());
             PlayerPrefs.Save();
         }
 
         /// <summary>
-        /// Attempts to load the settings with the given catID from PlauerPrefs
+        /// Attempts to load the settings with the given catID from PlayerPrefs
         /// </summary>
         /// <param name="catID"></param>
         /// <returns>return the found settings, or null if not found</returns>
         public static PerCategoryDebugSettings Load(int catID)
         {
-            PerCategoryDebugSettings newInst = new PerCategoryDebugSettings(){ category = catID };
+            PerCategoryDebugSettings newInst = new PerCategoryDebugSettings() { category = catID };
             if (newInst.TryLoad())
                 return newInst;
-            return null;
 
+            return null;
         }
-        
 
         /// <summary>
-        /// uses CategoryID to Load settings from player Prefs.  If not found, the default value are assigned.
+        /// uses CategoryID to Load settings from PlayerPrefs.
+        /// If not found, the default values are assigned.
         /// Overwrites existing stored values (other than `int category`)
         /// </summary>
         public void Load()
         {
-            if(!TryLoad())
+            if (!TryLoad())
             {
                 UnityEngine.Debug.Log($"Category at key: {NameKey()} does not exist. Using defaults.");
-                name = PerCategoryDebugSettings.Default.name;
-                logEnabled = PerCategoryDebugSettings.Default.logEnabled;
-                alwaysLogToFile = PerCategoryDebugSettings.Default.alwaysLogToFile;
+                name = Default.name;
+                enableConsoleLogging = Default.enableConsoleLogging;
+                enableFileLogging = Default.enableFileLogging;
+                enableAsserts = Default.enableAsserts;
             }
         }
 
         /// <summary>
-        /// uses CategoryID to Load settings from player Prefs.  If not found, returns false, and does not alter any fields.
+        /// uses CategoryID to Load settings from PlayerPrefs.
+        /// If not found, returns false, and does not alter any fields.
         /// </summary>
-        /// <returns></returns>
         public bool TryLoad()
         {
             if (PlayerPrefs.HasKey(NameKey()))
             {
                 name = PlayerPrefs.GetString(NameKey(), name);
-                logEnabled = PlayerPrefs.GetInt(EnabledKey(), logEnabled.ToInt()).ToBool();
-                alwaysLogToFile = PlayerPrefs.GetInt(AlwaysLogToFilekey(), alwaysLogToFile.ToInt()).ToBool(); 
+                enableConsoleLogging = PlayerPrefs.GetInt(ConsoleLoggingKey(), enableConsoleLogging.ToInt()).ToBool();
+                enableFileLogging = PlayerPrefs.GetInt(FileLoggingKey(), enableFileLogging.ToInt()).ToBool();
+                enableAsserts = PlayerPrefs.GetInt(AssertsKey(), enableAsserts.ToInt()).ToBool();
                 return true;
             }
+
             return false;
         }
 
-
         /// <summary>
-        /// Deletes all PleyrPref entries for this CategoryID
+        /// Deletes all PlayerPrefs entries for this CategoryID
         /// </summary>
         public void Delete()
         {
             if (PlayerPrefs.HasKey(NameKey()))
             {
                 PlayerPrefs.DeleteKey(NameKey());
-                PlayerPrefs.DeleteKey(EnabledKey());
-                PlayerPrefs.DeleteKey(AlwaysLogToFilekey());
+                PlayerPrefs.DeleteKey(ConsoleLoggingKey());
+                PlayerPrefs.DeleteKey(FileLoggingKey());
+                PlayerPrefs.DeleteKey(AssertsKey());
             }
-
         }
 
         public void SetToDefault()
         {
-            name = PerCategoryDebugSettings.Default.name;
-            logEnabled = PerCategoryDebugSettings.Default.logEnabled;
-            alwaysLogToFile = PerCategoryDebugSettings.Default.alwaysLogToFile;
+            name = Default.name;
+            enableConsoleLogging = Default.enableConsoleLogging;
+            enableFileLogging = Default.enableFileLogging;
+            enableAsserts = Default.enableAsserts;
             Save();
         }
 
         private string NameKey() => Key + "/Name";
-        private string EnabledKey() => Key + "/Enabled";
-        private string AlwaysLogToFilekey() => Key + "/alwaysLogToFile";
+        private string ConsoleLoggingKey() => Key + "/EnableConsoleLogging";
+        private string FileLoggingKey() => Key + "/EnableFileLogging";
+        private string AssertsKey() => Key + "/EnableAsserts";
+    }
 
-
-    }//end CategoricalDebug namespace
 }

@@ -128,8 +128,9 @@ namespace EyE.Debug
             PerCategoryDebugSettings newCategorySettings = new PerCategoryDebugSettings();
             newCategorySettings.name = catName;
             newCategorySettings.category = firstKeyAvaialble;
-            newCategorySettings.logEnabled = true;
-            newCategorySettings.alwaysLogToFile = false;
+            newCategorySettings.enableConsoleLogging = true;
+            newCategorySettings.enableFileLogging = true;
+            newCategorySettings.enableAsserts = true;
             newCategorySettings.Save();
             catDebugLoggingInfo.Add(firstKeyAvaialble, newCategorySettings);
             categoryIndexByName.Add(catName, firstKeyAvaialble);
@@ -200,29 +201,6 @@ namespace EyE.Debug
         }
 
         /// <summary>
-        /// Returns the enabled/disabled state of the specified category.  if not registered, returns false.
-        /// </summary>
-        /// <param name="catID">The index of the registered category to lookup.</param>
-        /// <returns>The enabled state of the category.  if not registered, returns false.</returns>
-        public static bool GetCategoryState(int catID)
-        {
-
-            return catDebugLoggingInfo[catID].logEnabled;
-        }
-
-        /// <summary>
-        /// Finds the enabled/disabled state of the specified category.  if not registered, returns false.
-        /// </summary>
-        /// <param name="catID">The index of the registered category to lookup.</param>
-        /// <returns>The enabled state of the category.  if not registered, returns false.</returns>
-        public static bool GetCategoryAlwaysLogToFileState(int catID)
-        {
-
-            return catDebugLoggingInfo[catID].alwaysLogToFile;
-        }
-
-
-        /// <summary>
         /// Finds the PlayerPrefOption that stores the state of the specified category.  if not registered, returns null.
         /// </summary>
         /// <param name="catID">The index of the registered category to lookup.</param>
@@ -235,39 +213,6 @@ namespace EyE.Debug
             return null;
         }
 
-
-        /// <summary>
-        /// Sets and saves the enabled/disabled state of the specified category.
-        /// </summary>
-        /// <param name="catID">The index of the registered category to set.</param>
-        /// <param name="state">The new enabled state to be assigned to this category.</param>
-        public static void SetCategoryState(int catID, bool state)
-        {
-
-            if (catDebugLoggingInfo.ContainsKey(catID))
-            {
-                catDebugLoggingInfo[catID].logEnabled = state;
-            }
-            else
-                CatDebugLog.LogWarning("Failure attempting to set state of an unregistered DebugCategory ID:" + catID.ToString());
-        }
-
-
-        /// <summary>
-        /// Sets and saves the enabled/disabled state of the specified category.
-        /// </summary>
-        /// <param name="catID">The index of the registered category to set.</param>
-        /// <param name="state">The new enabled state to be assigned to this category.</param>
-        public static void SetCategoryLogToFileOnDisabledState(int catID, bool state)
-        {
-
-            if (catDebugLoggingInfo.ContainsKey(catID))
-            {
-                catDebugLoggingInfo[catID].alwaysLogToFile = state;
-            }
-            else
-                CatDebugLog.LogWarning("Failure attempting to set state of an unregistered DebugCategory ID:" + catID.ToString());
-        }
 
         /// <summary>
         /// Generates a list of all the Registered category names, and puts them into the string List reference provided

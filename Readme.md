@@ -63,8 +63,8 @@ CatDebug.AppendToNextLog(1, "Appended text.");
 
 ```
 PhysicsAssert.IsTrue(condition, "Condition failed");
-PhysicsAssert.IsNotNull(someObject, "Object should not be null");
-PhysicsAssert.AreNotNull("Multiple objects check", obj1, obj2, obj3);
+PhysicsAssert.IsNotNull(rigidBody, "rigidBody not assigned");
+PhysicsAssert.AreNotNull("Multiple objects check", rigidBody, meshRenderer, gameData);
 ```
 
 ### Editor Settings

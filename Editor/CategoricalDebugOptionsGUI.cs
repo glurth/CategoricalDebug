@@ -34,42 +34,53 @@ namespace EyE.EditorUnity
         public static void Draw()
         {
             LoadIfNeeded();
-
             EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField(new GUIContent("Enabled via Compiler Directive", "  Turing this setting off will disable all processing of logging and asserts, **including evaluating parameters**.\n  Recommend: turn off for Release build.\n  Note: Changing this setting may force rebuild or domain reload"), GUILayout.Width(250)); // Set an explicit width for the label
-            bool defineSet = IsSymbolDefined(CatDebug.CONDITONAL_DEFINE_STRING);
-            bool newDefineSet = EditorGUILayout.Toggle(defineSet, GUILayout.ExpandWidth(true));
-            if (defineSet != newDefineSet)
-                UpdatePlayerBuildSettingsDefine(CatDebug.CONDITONAL_DEFINE_STRING,newDefineSet);
+            EditorGUILayout.BeginVertical();
+            {
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.LabelField(new GUIContent("Enabled via Compiler Directive", "  Turing this setting off will disable all processing of logging and asserts, **including evaluating parameters**.\n  Recommend: turn off for Release build.\n  Note: Changing this setting may force rebuild or domain reload"), GUILayout.Width(250)); // Set an explicit width for the label
+                bool defineSet = IsSymbolDefined(CatDebug.CONDITONAL_DEFINE_STRING);
+                bool newDefineSet = EditorGUILayout.Toggle(defineSet, GUILayout.ExpandWidth(true));
+                if (defineSet != newDefineSet)
+                    UpdatePlayerBuildSettingsDefine(CatDebug.CONDITONAL_DEFINE_STRING, newDefineSet);
+                EditorGUILayout.EndHorizontal();
 
+
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.LabelField(new GUIContent("Add Category Name To Log", "Enabling this option will automatically preprend the category name to any logs generate for that category"), GUILayout.Width(250)); // Set an explicit width for the label
+                _addCategoryNameToLog = EditorGUILayout.Toggle(_addCategoryNameToLog, GUILayout.ExpandWidth(true));
+                EditorGUILayout.EndHorizontal();
+
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.LabelField(new GUIContent("Category Name Single Line", "Only applicable if Add Category Name To Log is enabled.  When disabled a new line will be generated after the category name."), GUILayout.Width(250));
+                _addCategoryNameToLogSingleLine = EditorGUILayout.Toggle(_addCategoryNameToLogSingleLine, GUILayout.ExpandWidth(true));
+                EditorGUILayout.EndHorizontal();
+
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.LabelField(new GUIContent("Always Show Warnings", "When set to true, warnings will be displayed even if the category is disabled."), GUILayout.Width(250));
+                _alwaysShowWarnings = EditorGUILayout.Toggle(_alwaysShowWarnings, GUILayout.ExpandWidth(true));
+                EditorGUILayout.EndHorizontal();
+
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.LabelField(new GUIContent("Log To File: Include Stack Trace", "Specifies weather of not stack traces should be written to log files"), GUILayout.Width(250));
+                _logToFileIncludeStackTrace = EditorGUILayout.Toggle(_logToFileIncludeStackTrace, GUILayout.ExpandWidth(true));
+                EditorGUILayout.EndHorizontal();
+            }
+            EditorGUILayout.EndVertical();
+
+            EditorGUILayout.BeginVertical();
+            //GUILayout.FlexibleSpace();
+            //EditorGUILayout.BeginHorizontal();
+            //GUILayout.FlexibleSpace();
+            if (GUILayout.Button("Open Log File"))
+                EditorUtility.OpenWithDefaultApp(CatDebug.catLogFilePath);
+            //GUILayout.FlexibleSpace();
+            //EditorGUILayout.EndHorizontal();
+            //GUILayout.FlexibleSpace();
+            EditorGUILayout.EndVertical();
 
             EditorGUILayout.EndHorizontal();
-
-
-            EditorGUI.BeginChangeCheck();
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField(new GUIContent("Add Category Name To Log","Enabling this option will automatically preprend the category name to any logs generate for that category"), GUILayout.Width(250)); // Set an explicit width for the label
-            _addCategoryNameToLog = EditorGUILayout.Toggle(_addCategoryNameToLog, GUILayout.ExpandWidth(true));
-            EditorGUILayout.EndHorizontal();
-
-            // --- Apply the same pattern to the rest ---
-
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField(new GUIContent("Category Name Single Line", "Only applicable if Add Category Name To Log is enabled.  When disabled a new line will be generated after the category name."), GUILayout.Width(250));
-            _addCategoryNameToLogSingleLine = EditorGUILayout.Toggle(_addCategoryNameToLogSingleLine, GUILayout.ExpandWidth(true));
-            EditorGUILayout.EndHorizontal();
-
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField(new GUIContent("Always Show Warnings","When set to true, warnings will be displayed even if the category is disabled."), GUILayout.Width(250));
-            _alwaysShowWarnings = EditorGUILayout.Toggle(_alwaysShowWarnings, GUILayout.ExpandWidth(true));
-            EditorGUILayout.EndHorizontal();
-
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField(new GUIContent("Log To File: Include Stack Trace","Specifies weather of not stack traces should be written to log files"), GUILayout.Width(250));
-            _logToFileIncludeStackTrace = EditorGUILayout.Toggle(_logToFileIncludeStackTrace, GUILayout.ExpandWidth(true));
-            EditorGUILayout.EndHorizontal();
-
-
 
             if (!EditorGUI.EndChangeCheck())
                 return;
@@ -169,26 +180,32 @@ namespace EyE.EditorUnity
 
                 EditorGUILayout.BeginVertical();
 
-                bool oldValue = categoryOptions.logEnabled;
-                bool newValue = EditorGUILayout.Toggle("Enabled", oldValue);
 
+                bool oldValue = categoryOptions.enableConsoleLogging;
+                bool newValue = EditorGUILayout.Toggle("Console Logging Enabled", oldValue);
                 if (newValue != oldValue)
                 {
-                    categoryOptions.logEnabled = newValue;
+                    categoryOptions.enableConsoleLogging = newValue;
                     categoryOptions.Save();
                 }
 
-                if (!newValue)
+                oldValue = categoryOptions.enableFileLogging;
+                newValue = EditorGUILayout.Toggle("File Logging Enabled", oldValue);
+                if (newValue != oldValue)
                 {
-                    oldValue = categoryOptions.alwaysLogToFile;
-                    newValue = EditorGUILayout.Toggle("AlwaysLogToFile", oldValue);
-
-                    if (newValue != oldValue)
-                    {
-                        categoryOptions.alwaysLogToFile = newValue;
-                        categoryOptions.Save();
-                    }
+                    categoryOptions.enableFileLogging = newValue;
+                    categoryOptions.Save();
                 }
+
+                oldValue = categoryOptions.enableAsserts;
+                newValue = EditorGUILayout.Toggle("Asserts Enabled", oldValue);
+                if (newValue != oldValue)
+                {
+                    categoryOptions.enableAsserts = newValue;
+                    categoryOptions.Save();
+                }
+                
+
 
                 EditorGUILayout.EndVertical();
                 EditorGUILayout.EndHorizontal();

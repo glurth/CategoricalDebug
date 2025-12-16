@@ -49,7 +49,7 @@ namespace EyE.Debug
         }
 
         protected bool Active =>
-            categorySettings.logEnabled;
+            categorySettings.enableAsserts;
 
         // ---------- Boolean asserts (delegated) ----------
 

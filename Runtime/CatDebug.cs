@@ -132,7 +132,7 @@ namespace EyE.Debug
         }
 
         #region fileStream
-        readonly string catLogFilePath = "CategoricalLog.txt"; //will store in root of project folder.
+        public readonly string catLogFilePath = "CategoricalLog.txt"; //will store in root of project folder.
         static System.IO.StreamWriter logFileStream = null;
         private readonly object logStreamThreadLock = new object();
 
@@ -146,6 +146,7 @@ namespace EyE.Debug
             {
                 try
                 {
+                    System.IO.File.Copy(catLogFilePath, catLogFilePath + ".BAK");
                     System.IO.File.Delete(catLogFilePath);
                 }
                 catch
@@ -158,8 +159,8 @@ namespace EyE.Debug
             try
             {
                 logFileStream = new System.IO.StreamWriter(catLogFilePath);
-                Application.quitting -= FlushStream;//just incase was present
-                Application.quitting += FlushStream;
+                Application.quitting -= FlushAndCloseStream;//just incase was present
+                Application.quitting += FlushAndCloseStream;
             }
             catch
             {
@@ -168,7 +169,7 @@ namespace EyE.Debug
             
         }
 
-        void FlushStream()
+        void FlushAndCloseStream()
         {
             CatDebugLog.Log("Flushing and closing log file stream.");
             if (logFileStream != null)
@@ -180,9 +181,9 @@ namespace EyE.Debug
 
 
         /// <summary>
-        /// 
+        /// Write message to current file stream.
         /// </summary>
-        /// <param name="s"></param>
+        /// <param name="s">message to write</param>
         internal void ToFile(string s)
         {
             StringBuilder builder = new StringBuilder(s);
@@ -196,6 +197,15 @@ namespace EyE.Debug
 
         #endregion
 
+        /// <summary>
+        /// This function will take an array of strings, and if a build with CatDebug.CONDITONAL_DEFINE_STRING ("EYE_DEBUG") defined is running, it will concatenate together the strings and send the result to Debug.Log for display.
+        /// </summary>
+        /// <param name="message">A set of string parameters that will be concatenated and sent to Debug.Log for display.</param>
+        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        public void Log(params object[] message)
+        {
+            Log(StringBuilderExtensions.ObjectArrayToString(message));
+        }
 
         /// <summary>
         /// This function will take an array of strings, and if a build with CatDebug.CONDITONAL_DEFINE_STRING ("EYE_DEBUG") defined is running, it will concatenate together the strings and send the result to Debug.Log for display.
@@ -240,11 +250,10 @@ namespace EyE.Debug
         public void Log(int category, params object[] message)
         {
             StringBuilder output = new StringBuilder();
-            bool catEnabled = DebugCategoryRegistrar.GetCategoryState(category);
-            bool catFileEnabled = DebugCategoryRegistrar.GetCategoryAlwaysLogToFileState(category);
-            if (catEnabled || catFileEnabled)
-            {
+            PerCategoryDebugSettings settings = DebugCategoryRegistrar.GetCategorySettings(category);
 
+            if (settings.enableConsoleLogging || settings.enableFileLogging)
+            {
                 if (addCategoryNameToLog)
                     output.Append(CategoryDisplayText(category));
                 if (prependInstanceName)
@@ -254,12 +263,9 @@ namespace EyE.Debug
                 output.Append(StringBuilderExtensions.ObjectArrayToString(message));
                 output.Append(GetThenClearAppendText(category));
 
-                if (catEnabled)
-                {
+                if (settings.enableConsoleLogging)
                     UnityEngine.Debug.Log(output.ToString());
-                    ToFile(output.ToString());
-                }
-                else if (catFileEnabled)
+                if (settings.enableFileLogging)
                     ToFile(output.ToString());
             }
         }
@@ -289,9 +295,11 @@ namespace EyE.Debug
         {
 
             if (addCategoryNameToLog)
-                UnityEngine.Debug.LogError(CategoryDisplayText(category) + message);
-            else
-                UnityEngine.Debug.LogError(message);
+                message=(CategoryDisplayText(category) + message);
+            UnityEngine.Debug.LogError(message);
+            PerCategoryDebugSettings settings = DebugCategoryRegistrar.GetCategorySettings(category);
+            if (settings.enableFileLogging)
+                ToFile(" **ERROR** " + message);
 
         }
 
@@ -305,13 +313,15 @@ namespace EyE.Debug
         [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
         public void LogWarning(int category, string message)
         {
-            if (alwaysShowWarnings || DebugCategoryRegistrar.GetCategoryState(category))
-            {
-                if (addCategoryNameToLog)
-                    UnityEngine.Debug.LogWarning(CategoryDisplayText(category) + message);
-                else
-                    UnityEngine.Debug.LogWarning(message);
-            }
+            PerCategoryDebugSettings settings = DebugCategoryRegistrar.GetCategorySettings(category);
+            if (addCategoryNameToLog)
+                message=(CategoryDisplayText(category) + message);
+
+            if (alwaysShowWarnings || settings.enableConsoleLogging)
+                UnityEngine.Debug.LogWarning(message);
+            if (alwaysShowWarnings || settings.enableFileLogging)
+                ToFile(" **Warning** " + message);
+
         }
 
         #region append and prepend members
@@ -594,7 +604,8 @@ namespace EyE.Debug
         /// <param name="dictionary">dictionary reference to use for lookup</param>
         static void AppendOrAddMessgeToTextByCategoryDictionary(int category, object[] messageObjects, ConcurrentDictionary<int, StringBuilderAndLock> dictionary)
         {
-            if (DebugCategoryRegistrar.GetCategoryState(category) || DebugCategoryRegistrar.GetCategoryAlwaysLogToFileState(category))
+            PerCategoryDebugSettings settings = DebugCategoryRegistrar.GetCategorySettings(category);
+            if (settings.enableConsoleLogging || settings.enableFileLogging)
             {
                 string message = StringBuilderExtensions.ObjectArrayToString(messageObjects);
                 StringBuilderAndLock builderRef;
@@ -620,7 +631,7 @@ namespace EyE.Debug
     public static class CatDebug
     {
         public const string CONDITONAL_DEFINE_STRING = "EYE_DEBUG";
-
+        
         static CatDebugInstance instance = new CatDebugInstance();
 
         /// <summary>
@@ -638,8 +649,9 @@ namespace EyE.Debug
         }
 
         #region globalSettings
-        
-        
+
+        public static string catLogFilePath => instance.catLogFilePath;
+
         /// <summary>
         ///  the option controls whether or not categories names will be prepended to log displays.
         ///  </summary>
