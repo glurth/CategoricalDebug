@@ -72,6 +72,8 @@ namespace EyE.Debug
 
             catDebugLoggingInfo.Clear();
             categoryIndexByName.Clear();
+            //expected I would need to rewrite this, thinking it would be too slow- but takes far less than a second, and only runs once on load.
+            //also safer that storing a list of valid index, as that could loose sync.
             for (int i = 0; i < maxCategoryID; i++)
             {
                 bool exists = PlayerPrefs.HasKey(NameKeyForCatID(i));

@@ -5,16 +5,14 @@ using System.Text;
 
 namespace EyE.Debug
 {
+    /// <summary>
+    /// Some internal convenience functions
+    /// </summary>
     static class StringBuilderExtensions
     {
         static public void Append(this StringBuilder stringBuilder, params object[] objectArray)
         {
-            if (objectArray != null)
-            {
-                foreach (object o in objectArray)
-                    stringBuilder.Append(o);
-            }
-
+            stringBuilder.Append(ObjectArrayToString(objectArray));
         }
 
         static public string NewLineString
@@ -22,20 +20,25 @@ namespace EyE.Debug
             get { return (string)System.Environment.NewLine; }
         }
 
+        /// <summary>
+        /// Really, just a different name for string.Join("", objectArray)
+        /// </summary>
+        /// <param name="objectArray"></param>
+        /// <returns></returns>
         static public string ObjectArrayToString(params object[] objectArray)
         {
-            return new StringBuilder().Append(objectArray).ToString();
+            return string.Join("", objectArray);
         }
     }
 
     /// <summary>
-    /// Instanced Version of CatDebug.  Create an new instance of this class when you want to log in a separate thread and use it's own prepend/append values.
-    /// Otherwise, it is recommened to use the static CatDebug class instead.
+    /// Instanced Version of CatDebug.  Only create an new instance of this class when you want to log in a separate thread and use it's own prepend/append values.
+    /// Otherwise, it is recommend to use the static CatDebug class instead.
     /// </summary>
     public class CatDebugInstance
     {
         /// <summary>
-        /// Default constructor, blank string is assigned to instance name. Default log filename and path used.
+        /// Default constructor, blank string is assigned default instance name. Default log filename and path used.
         /// </summary>
         public CatDebugInstance() { InitFile(); }
 
@@ -43,12 +46,14 @@ namespace EyE.Debug
         /// Constructor assigns the provided string to instance name, and if not null or empty enables the prependInstanceName flag.
         /// </summary>
         /// <param name="instanceName">may be null or empty to have no effect- otherwise, will be prepended to log output</param>
-        /// <param name="logFilePath">use to override the default filename path</param>
-        public CatDebugInstance(string instanceName, string logFilePath = "CategoricalLog.txt")
+        /// <param name="logFileName">use to override the default filename path</param>
+        public CatDebugInstance(string instanceName, string logFileName = "CategoricalLog.txt", string overrideLoggingFolder = null)
         {
             this.instanceName = instanceName;
-            this.catLogFilePath = logFilePath;
+            this.catLogFileName = logFileName;
+            this.overrideLoggingFolder = overrideLoggingFolder;
             prependInstanceName = ! string.IsNullOrEmpty(instanceName);
+            
             InitFile();
         }
         /// <summary>
@@ -131,7 +136,22 @@ namespace EyE.Debug
         }
 
         #region fileStream
-        public readonly string catLogFilePath = "CategoricalLog.txt"; //will store in root of project folder.
+        public readonly string catLogFileName = "CategoricalLog.txt"; //will store in root of project folder.
+        public string overrideLoggingFolder = null;
+        public string catLogFilePath
+        {
+            get
+            {
+                if (!string.IsNullOrEmpty(overrideLoggingFolder))
+                {
+                    if(System.IO.Directory.Exists(overrideLoggingFolder))
+                        return System.IO.Path.Combine(overrideLoggingFolder, catLogFileName);
+                    else
+                        UnityEngine.Debug.LogWarning("Manual override logging Folder is specified ("+ overrideLoggingFolder + "), but the folder does not exist.  Falling back to using Application.persistentDataPath ("+ Application.persistentDataPath + ") instead.");
+                }
+                return System.IO.Path.Combine(Application.persistentDataPath, catLogFileName);
+            }
+        }
         static System.IO.StreamWriter logFileStream = null;
         private static readonly object logStreamThreadLock = new object();
 
@@ -145,13 +165,23 @@ namespace EyE.Debug
             {
                 try
                 {
-                    System.IO.File.Copy(catLogFilePath, catLogFilePath + ".BAK");
-                    System.IO.File.Delete(catLogFilePath);
+                    string copyToPath = System.IO.Path.ChangeExtension(catLogFilePath, "BAK");
+                    System.IO.File.Copy(catLogFilePath, copyToPath, true);
+                    try
+                    {
+                        System.IO.File.Delete(catLogFilePath);
+                    }
+                    catch
+                    {
+                        UnityEngine.Debug.LogWarning("Failed to delete existing log file " + catLogFilePath + ", (possibly open).  Trying Write anyway.");
+                    }
                 }
                 catch
                 {
-                    UnityEngine.Debug.LogWarning("Failed to delete existing log file "+ catLogFilePath+ ", (possibly open).  Trying Write anyway.");
+                    UnityEngine.Debug.LogWarning("Failed to backup existing log file " + catLogFilePath + ", (possibly open).  Trying Write anyway.");
                 }
+
+
             }
 
             //Create the file.
@@ -160,6 +190,7 @@ namespace EyE.Debug
                 logFileStream = new System.IO.StreamWriter(catLogFilePath);
                 Application.quitting -= FlushAndCloseStream;//just incase was present
                 Application.quitting += FlushAndCloseStream;
+                //UnityEngine.Debug.Log("Created and open new log file without error: " + catLogFilePath);
             }
             catch
             {
@@ -191,7 +222,11 @@ namespace EyE.Debug
                 builder.Append(StringBuilderExtensions.NewLineString, "StackTrace: ", StringBuilderExtensions.NewLineString, System.Environment.StackTrace);
             lock (logStreamThreadLock)
             {
-                logFileStream.WriteLine(builder);
+                try { logFileStream.WriteLine(builder); }
+                catch (System.Exception e)
+                {
+                    UnityEngine.Debug.LogError("Failure occu red while attempting to write to previously opened log file ("+catLogFilePath+").");
+                }
             }
         }
 
