@@ -4,6 +4,17 @@ using EyE.Debug;
 
 namespace EyE.Unity.CategoricalDebug
 {
+    /// <summary>
+    /// Derive from this class to create a static category specific Assert class for use in your code.
+    /// example: 
+    /// class PhysicsAssert : CategoryAssertBase<PhysicsAssert>
+    /// {
+    ///     protected override string CategoryName => "Physics";
+    /// }
+    /// ...
+    /// PhysicsAssert.IsNotNull(rigidBody,"rigidBody not assigned");
+    /// ...
+    /// <typeparam name="TSelf">The class derived from this one </typeparam>
     public abstract class CategoryAssertBase<TSelf>
         where TSelf : CategoryAssertBase<TSelf>, new()
     {
@@ -43,103 +54,103 @@ namespace EyE.Unity.CategoricalDebug
         // ---------- Boolean asserts (delegated) ----------
 
         [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
-        public static void IsTrue(bool b, string message, object context = null)
+        public static void IsTrue(bool b, string failMessage, object context = null)
         {
             if (!Instance.Active) return;
-            Assert.isTrue(b, message, context);
+            Assert.isTrue(b, failMessage, context);
         }
 
         [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
-        public static void IsFalse(bool b, string message, object context = null)
+        public static void IsFalse(bool b, string failMessage, object context = null)
         {
             if (!Instance.Active) return;
-            Assert.isFalse(b, message, context);
+            Assert.isFalse(b, failMessage, context);
         }
 
         [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
-        public static void ExpensiveIsTrue<T>(Func<bool> condition, string message, object context = null)
+        public static void ExpensiveIsTrue<T>(Func<bool> condition, string failMessage, object context = null)
         {
             if (!Instance.Active) return;
-            Assert.expensiveIsTrue<T>(condition, message, context);
+            Assert.expensiveIsTrue<T>(condition, failMessage, context);
         }
 
         // ---------- Null checks ----------
 
         [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
-        public static void IsNotNull(object obj, string message, object context = null)
+        public static void IsNotNull(object obj, string failMessage, object context = null)
         {
             if (!Instance.Active) return;
-            Assert.isNotNull(obj, message, context);
+            Assert.isNotNull(obj, failMessage, context);
         }
 
         [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
-        public static void AreNotNull(string message, params object[] objs)
+        public static void AreNotNull(string failMessage, params object[] objs)
         {
             if (!Instance.Active) return;
-            Assert.areNotNull(message, objs);
+            Assert.areNotNull(failMessage, objs);
         }
 
         [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
-        public static void AreNotNullWithContext(string message, object context, params object[] objs)
+        public static void AreNotNullWithContext(string failMessage, object context, params object[] objs)
         {
             if (!Instance.Active) return;
-            Assert.areNotNullWithContext(message, context, objs);
+            Assert.areNotNullWithContext(failMessage, context, objs);
         }
 
         // ---------- Equality ----------
 
         [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
-        public static void IsEqual<T>(T expected, T actual, string message, object context = null)
+        public static void IsEqual<T>(T expected, T actual, string failMessage, object context = null)
             where T : IEquatable<T>
         {
             if (!Instance.Active) return;
-            Assert.isEqual(expected, actual, message, context);
+            Assert.isEqual(expected, actual, failMessage, context);
         }
 
         // ---------- Type ----------
 
         [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
-        public static void Is<T>(object obj, string message)
+        public static void Is<T>(object obj, string failMessage)
         {
             if (!Instance.Active) return;
-            Assert.Is<T>(obj, message);
+            Assert.Is<T>(obj, failMessage);
         }
 
         // ---------- Generic display variants ----------
 
         [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
-        public static void IsTrue<T>(bool b, string message, object context = null)
+        public static void IsTrue<T>(bool b, string failMessage, object context = null)
         {
             if (!Instance.Active) return;
-            Assert.isTrue<T>(b, message, context);
+            Assert.isTrue<T>(b, failMessage, context);
         }
 
         [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
-        public static void IsFalse<T>(bool b, string message, object context = null)
+        public static void IsFalse<T>(bool b, string failMessage, object context = null)
         {
             if (!Instance.Active) return;
-            Assert.isFalse<T>(b, message, context);
+            Assert.isFalse<T>(b, failMessage, context);
         }
 
         [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
-        public static void IsNotNull<T>(object obj, string message, object context = null)
+        public static void IsNotNull<T>(object obj, string failMessage, object context = null)
         {
             if (!Instance.Active) return;
-            Assert.isNotNull<T>(obj, message, context);
+            Assert.isNotNull<T>(obj, failMessage, context);
         }
 
         [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
-        public static void AreNotNull<T>(string message, params object[] objs)
+        public static void AreNotNull<T>(string failMessage, params object[] objs)
         {
             if (!Instance.Active) return;
-            Assert.areNotNull<T>(message, objs);
+            Assert.areNotNull<T>(failMessage, objs);
         }
 
         [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
-        public static void AreNotNullWithContext<T>(string message, object context, params object[] objs)
+        public static void AreNotNullWithContext<T>(string failMessage, object context, params object[] objs)
         {
             if (!Instance.Active) return;
-            Assert.areNotNullWithContext<T>(message, context, objs);
+            Assert.areNotNullWithContext<T>(failMessage, context, objs);
         }
 
     }

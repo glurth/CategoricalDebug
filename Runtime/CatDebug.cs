@@ -110,10 +110,25 @@ namespace EyE.Unity.CategoricalDebug
         /// <param name="category">categoryID for which the name will be looked up.</param>
         /// <returns></returns>
         internal string CategoryDisplayText(int category)
-        {
+        {   
+            string catName = DebugCategoryRegistrar.GetCategoryName(category);
+            if (catName == null) return "Unassigned Category.";
             if (addCategoryNameToLogSingleLine)
-                return CatDebug.GetCategoryName(category) + ": ";
-            return "Category: " + CatDebug.GetCategoryName(category) + StringBuilderExtensions.NewLineString;
+                return catName + ": ";
+            return "Category: " + catName + StringBuilderExtensions.NewLineString;
+        }
+
+        /// <summary>
+        /// Retrieves the internally stored name of category specified by the provided index.  If no name has been stored, it will return and empty, non-null string.
+        /// While you could use this function to manually setup the categories, if multiple categories are in use, it is recommended that you use the ConditionalDebugRegistrar Class instead, which also saves names and states to storage.
+        /// </summary>
+        /// <param name="category">Unique Category index to get the name of.</param>
+        /// <returns>Name found for the category. If no name has been stored, it will return and empty, non-null string.</returns>
+        public static string GetCategoryName(int category)
+        {
+            string s = DebugCategoryRegistrar.GetCategoryName(category);
+            if (s == null) return "Unassigned Category.";
+            return s;
         }
 
         #region fileStream
@@ -689,6 +704,7 @@ namespace EyE.Unity.CategoricalDebug
             instance.Log(category, message);
         }
 
+        /*
         /// <summary>
         /// This function takes a set of strings as parameters and uses the first one as the category, the rest are part of the message to be displayed.
         /// The message is only displayed if the Category has been registered, and is enabled
@@ -699,7 +715,7 @@ namespace EyE.Unity.CategoricalDebug
         public static void Log(string categoryName, params string[] message)
         {
             instance.Log(categoryName, message);
-        }
+        }*/
 
         /// <summary>
         /// This function will take a single string, and if the category is enabled, and if a DEBUG build is running, it will send it to Debug.Log for display.
@@ -711,6 +727,30 @@ namespace EyE.Unity.CategoricalDebug
         public static void Log(int category, string message)
         {
             instance.Log(category, message);
+        }
+
+        /// <summary>
+        /// This function will take a single string, and if the category is enabled, and if a DEBUG build is running, it will send it to Debug.LogError for display.
+        /// If addCategoryNameToLog is true, the category name will be prepended to the final string before sending it to Debug.LogError
+        /// </summary>
+        /// <param name="category">Errors are always logged. With the appropriate options selected, this category's name may be prepended the log entry.</param>
+        /// <param name="message">A string sent to Debug.LogError for display.</param>
+        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        public static void LogError(int category, string message)
+        {
+            instance.LogError(category, message);
+        }
+
+        /// <summary>
+        /// This function will take a single string, and if the category is enabled, and if a DEBUG build is running, it will send it to Debug.LogWarning for display.
+        /// If addCategoryNameToLog is true, the category name will be prepended to the final string before sending it to Debug.LogWarning
+        /// </summary>
+        /// <param name="category">Only if this Category index is enabled, or the alwaysShowWarnings option is set to true, will this function display a log.  With the appropriate options selected, this category's name may be prepended the log entry.</param>
+        /// <param name="message">A string sent to Debug.LogWarning for display.</param>
+        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
+        public static void LogWarning(int category, string message)
+        {
+            instance.LogWarning(category, message);
         }
 
         #region append and prepend functions
@@ -801,42 +841,7 @@ namespace EyE.Unity.CategoricalDebug
         }
         #endregion
 
-        /// <summary>
-        /// This function will take a single string, and if the category is enabled, and if a DEBUG build is running, it will send it to Debug.LogError for display.
-        /// If addCategoryNameToLog is true, the category name will be prepended to the final string before sending it to Debug.LogError
-        /// </summary>
-        /// <param name="category">Errors are always logged. With the appropriate options selected, this category's name may be prepended the log entry.</param>
-        /// <param name="message">A string sent to Debug.LogError for display.</param>
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
-        public static void LogError(int category, string message)
-        {
-            instance.LogError(category, message);
-        }
 
-        /// <summary>
-        /// This function will take a single string, and if the category is enabled, and if a DEBUG build is running, it will send it to Debug.LogWarning for display.
-        /// If addCategoryNameToLog is true, the category name will be prepended to the final string before sending it to Debug.LogWarning
-        /// </summary>
-        /// <param name="category">Only if this Category index is enabled, or the alwaysShowWarnings option is set to true, will this function display a log.  With the appropriate options selected, this category's name may be prepended the log entry.</param>
-        /// <param name="message">A string sent to Debug.LogWarning for display.</param>
-        [Conditional(CatDebug.CONDITONAL_DEFINE_STRING)]
-        public static void LogWarning(int category, string message)
-        {
-            instance.LogWarning(category, message);
-        }
-
-        /// <summary>
-        /// Retrieves the internally stored name of category specified by the provided index.  If no name has been stored, it will return and empty, non-null string.
-        /// While you could use this function to manually setup the categories, if multiple categories are in use, it is recommended that you use the ConditionalDebugRegistrar Class instead, which also saves names and states to storage.
-        /// </summary>
-        /// <param name="category">Unique Category index to get the name of.</param>
-        /// <returns>Name found for the category. If no name has been stored, it will return and empty, non-null string.</returns>
-        public static string GetCategoryName(int category)
-        {
-            string s=  DebugCategoryRegistrar.GetCategoryName(category);
-            if (s == null) return "Unassigned Category.";
-            return s;
-        }
 
     }//End Cat Debug
 }
