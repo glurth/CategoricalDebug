@@ -2,7 +2,7 @@
 
 using System.Collections.Generic;
 
-namespace EyE.Debug
+namespace EyE.Diagnostics
 {
     static public class PlayerPrefUtil
     {
@@ -47,6 +47,20 @@ namespace EyE.Debug
             {
                 //DoSetupIfNeeded()
                 return catDebugLoggingInfo.Keys;//.GetEnumerator();
+            }
+        }
+        /// <summary>
+        /// returns an enumeration of all the currently registered category ID numbers
+        /// </summary>
+        static public IEnumerable<string> registeredCategories
+        {
+            get
+            {
+                foreach (PerCategoryDebugSettings settings in catDebugLoggingInfo.Values)
+                {
+                    yield return settings.name;
+
+                }
             }
         }
         /// <summary>

@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-namespace EyE.Debug
+namespace EyE.Diagnostics
 {
     /// \ingroup CatDebug
     /// <summary>

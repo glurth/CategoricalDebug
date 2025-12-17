@@ -1,6 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
-namespace EyE.Debug.Examples
+namespace EyE.Diagnostics.Examples
 {
 
     public class FallingObjectTester : MonoBehaviour

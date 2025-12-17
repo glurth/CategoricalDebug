@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using UnityEditor;
-using EyE.Debug;
+using EyE.Diagnostics;
 
 namespace EyE.EditorUnity
 {
@@ -8,7 +8,7 @@ namespace EyE.EditorUnity
     {
         public static void AddSymbol(string symbol)
         {
-            BuildTargetGroup target = EditorUserBuildSettings.selectedBuildTargetGroup;
+            BuildTargetGroup target = BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget);
             string definesStr = PlayerSettings.GetScriptingDefineSymbolsForGroup(target);
             string[] defines = definesStr.Split(';');
 
@@ -24,7 +24,7 @@ namespace EyE.EditorUnity
 
         public static void RemoveSymbol(string symbol)
         {
-            BuildTargetGroup target = EditorUserBuildSettings.selectedBuildTargetGroup;
+            BuildTargetGroup target = BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget);
             string definesStr = PlayerSettings.GetScriptingDefineSymbolsForGroup(target);
             string[] defines = definesStr.Split(';');
 

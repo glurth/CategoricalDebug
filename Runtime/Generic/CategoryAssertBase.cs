@@ -2,7 +2,7 @@ using System;
 using System.Diagnostics;
 
 //NOTE: this file references the Assert class defined in the same namespace, but in the dependency repo https://github.com/glurth/Assert 
-namespace EyE.Debug
+namespace EyE.Diagnostics
 {
     /// <summary>
     /// Derive from this class to create a static category specific Assert class for use in your code.

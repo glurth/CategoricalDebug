@@ -17,6 +17,20 @@ If you find yourself constantly commenting out Debug.Log calls, this package is 
 
 ## Installation
 
+## DLL Version (Recommended for Projects)
+
+We recommend using precompiled DLLs as a plugin, instead of the full source package. This approach provides:
+
+- Cleaner Unity stack traces (source lines in CategoricalDebug are hidden)  
+- Faster iteration times without Unity recompiling the package source  
+- Simple, copy-and-drop installation
+
+The DLL's compiled from this package are provided separately, with different install instructions, at: (https://github.com/glurth/CategoricalDebugDLL)
+
+> **Important:** Do not install both the source package and the DLL plugin in the same project, as they share namespaces and will conflict.
+
+## Package Version (not recommended)
+
 You can install this package in Unity via GitHub using the Unity Package Manager.
 
 1. Open Unity and navigate to the **Package Manager** (Window > Package Manager).

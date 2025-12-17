@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-namespace EyE.Debug
+namespace EyE.Diagnostics
 {
     /// <summary>
     /// Derive from this class to create a static category specific log class for use in your code.

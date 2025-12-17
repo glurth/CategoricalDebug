@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using UnityEditor;
-using EyE.Debug;
+using EyE.Diagnostics;
 
 namespace EyE.EditorUnity
 {
@@ -48,7 +48,7 @@ namespace EyE.EditorUnity
 
                 EditorGUI.BeginChangeCheck();
                 EditorGUILayout.BeginHorizontal();
-                EditorGUILayout.LabelField(new GUIContent("Add Category Name To Log", "Enabling this option will automatically preprend the category name to any logs generate for that category"), GUILayout.Width(250)); // Set an explicit width for the label
+                EditorGUILayout.LabelField(new GUIContent("Add Category Name To Log", "Enabling this option will automatically prepend the category name to any logs generate for that category"), GUILayout.Width(250)); // Set an explicit width for the label
                 _addCategoryNameToLog = EditorGUILayout.Toggle(_addCategoryNameToLog, GUILayout.ExpandWidth(true));
                 EditorGUILayout.EndHorizontal();
 

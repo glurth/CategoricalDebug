@@ -1,4 +1,4 @@
-namespace EyE.Debug.Examples
+namespace EyE.Diagnostics.Examples
 {
     class PhysicsDebug : CategoryLogBase<PhysicsDebug>
     {

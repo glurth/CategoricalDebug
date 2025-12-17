@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace EyE.Debug
+namespace EyE.Diagnostics
 {
     /// <summary>
     /// Per-Category settings, stored in playerprefs using a key based on the category ID.

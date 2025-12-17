@@ -3,13 +3,18 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text;
 
-namespace EyE.Debug
+namespace EyE.Diagnostics
 {
     /// <summary>
-    /// Some internal convenience functions
+    /// Some internal convenience functions, 
     /// </summary>
     static class StringBuilderExtensions
     {
+        /// <summary>
+        /// appends a set of objects (via ToString) to the provided stringBuilder object
+        /// </summary>
+        /// <param name="stringBuilder"></param>
+        /// <param name="objectArray"></param>
         static public void Append(this StringBuilder stringBuilder, params object[] objectArray)
         {
             stringBuilder.Append(ObjectArrayToString(objectArray));
@@ -21,7 +26,7 @@ namespace EyE.Debug
         }
 
         /// <summary>
-        /// Really, just a different name for string.Join("", objectArray)
+        /// Really, just a different(better) name for string.Join("", objectArray)
         /// </summary>
         /// <param name="objectArray"></param>
         /// <returns></returns>
@@ -225,7 +230,7 @@ namespace EyE.Debug
                 try { logFileStream.WriteLine(builder); }
                 catch (System.Exception e)
                 {
-                    UnityEngine.Debug.LogError("Failure occu red while attempting to write to previously opened log file ("+catLogFilePath+").");
+                    UnityEngine.Debug.LogError(" Failure occurred while attempting to write to previously opened log file ("+catLogFilePath+").  Exception thrown: "+ e);
                 }
             }
         }
@@ -871,6 +876,28 @@ namespace EyE.Debug
             instance.AppendToNextLog(category, messageObjects);
         }
         #endregion
+
+
+        //category config control functions
+        static public void EnableLogToConsole(int category, bool enable)
+        {
+            PerCategoryDebugSettings settings = DebugCategoryRegistrar.GetCategorySettings(category);
+            settings.enableConsoleLogging = enable;
+            settings.Save();
+        }
+        static public void EnableLogToFile(int category, bool enable)
+        {
+            PerCategoryDebugSettings settings = DebugCategoryRegistrar.GetCategorySettings(category);
+            settings.enableFileLogging = enable;
+            settings.Save();
+        }
+
+        static public void EnableAsserts(int category, bool enable)
+        {
+            PerCategoryDebugSettings settings = DebugCategoryRegistrar.GetCategorySettings(category);
+            settings.enableAsserts = enable;
+            settings.Save();
+        }
 
 
 
